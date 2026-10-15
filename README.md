@@ -13,6 +13,8 @@ Base personal de **skills** (portables) y **subagentes** (adaptadores por herram
 ```
 dev-ai-toolkit/
 ├── install.sh                     # symlinks → ~/.claude/ (o ./.claude con --project)
+├── docs/
+│   └── agent-installation-spec.md # Matriz de instalación nativa para otros agentes (Gentle-AI)
 ├── skills/                        # PORTABLES — estándar Agent Skills
 │   ├── code-review/               # checklist + reporte fijo de review
 │   ├── test-strategy/             # priorización, AAA, nomenclatura
@@ -40,6 +42,17 @@ El kit aplica cuatro técnicas, cada una visible en los archivos:
 2. **Aislamiento de contexto (subagentes).** Las tareas ruidosas — leer 30 archivos para un review, la salida cruda de una suite de tests, un transcript de 200 mensajes — ocurren dentro del subagente. La sesión principal recibe solo el reporte final. Cada agente tiene reglas explícitas de "devuelve SOLO X".
 3. **Modelo económico para ejecución mecánica.** `test-runner` y `usage-extractor` declaran `model: haiku`: parsear salidas y extraer datos no requiere el modelo premium. `code-reviewer` y `arch-auditor` usan `model: inherit` porque el juicio sí importa. (Mismo patrón diseña-con-premium / ejecuta-con-económico ya usado en GitHub Actions.)
 4. **Herramientas restringidas.** Los agentes de solo lectura declaran `tools: Read, Grep, Glob` — menos superficie, menos permisos, prompts de sistema más cortos.
+
+## Integración como Submódulo para Agentes de IA
+
+Si este repositorio se consume como submódulo o base de conocimiento para que un agente de IA instale los skills nativamente en la máquina del usuario, el agente debe consultar la especificación:
+
+👉 **[docs/agent-installation-spec.md](docs/agent-installation-spec.md)**
+
+Allí encontrará:
+- Matriz de detección y rutas nativas para más de 14 agentes (Antigravity, Cursor, Windsurf, OpenCode, Claude Code, Gemini CLI, etc.) extraída de [Gentle-AI](https://github.com/Gentleman-Programming/gentle-ai).
+- Protocolo de symlinks sólo para `skills/` (preservando `ai-first-security-auditor` como caso especial).
+- Política de colisión: saltear con advertencia (`[WARN]`) sin sobreescribir archivos existentes.
 
 ## Instalación (Claude Code, Pop!_OS)
 
