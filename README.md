@@ -25,8 +25,11 @@ dev-ai-toolkit/
 │   ├── ddd-patterns/              # árbol de decisión táctico DDD
 │   │   └── references/antipatterns.md       # carga bajo demanda
 │   ├── ai-usage-report/           # reportes estandarizados + registro ai-usage/
-│   └── inference-security-hardening/ # hardening de servidores de inferencia, wrappers, VLMs y agentes
-│       └── references/testbench-cases.md    # catálogo de vectores y payloads
+│   ├── inference-security-hardening/ # hardening de servidores de inferencia, wrappers, VLMs y agentes
+│   │   └── references/testbench-cases.md    # catálogo de vectores y payloads
+│   └── secure-ssh-tunnels/        # túneles SSH seguros (-L, -R, SOCKS) y perfiles declarativos
+│       ├── references/ssh-config-templates.md # plantillas para ~/.ssh/config
+│       └── references/troubleshooting.md      # resolución de colisiones y puertos zombis
 └── adapters/
     └── claude-code/
         └── agents/
@@ -80,6 +83,7 @@ Los symlinks apuntan al repo: `git pull` propaga cambios sin reinstalar. Verific
 | "prepara el commit y el PR" | skill `commit-and-pr` |
 | "genera el reporte ai-usage de esta sesión" | skill `ai-usage-report` (+ `usage-extractor` si el transcript es largo) |
 | "audita la seguridad del servidor de inferencia/VLM" | skill `inference-security-hardening` (OWASP LLM01/02, inyecciones, XSS, sizing) |
+| "configura un túnel SSH para la GPU/cámara" | skill `secure-ssh-tunnels` (reenvío -L/-R, keepalive, config declarativo) |
 
 Para forzar un skill en Claude Code: `/code-review`, `/test-strategy`, etc. Para forzar un agente: mencionarlo — `@code-reviewer revisa los cambios de auth`.
 
