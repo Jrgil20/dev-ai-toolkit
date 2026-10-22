@@ -1,32 +1,33 @@
 ---
-name: ai-security-hardening
+name: inference-security-hardening
 description: >-
-  Audit vulnerabilities and implement security hardening for AI applications,
-  Large Language Models (LLMs), and Vision-Language Models (VLMs). Use when auditing
-  AI systems, preventing prompt injection (direct, secondary, or multimodal/optical),
-  securing DOM output handling, sizing context windows for agents, or hardening model servers.
+  Audit and implement security hardening for local and edge inference servers,
+  model serving wrappers (llama-server, vLLM, Flask/FastAPI), Vision-Language Models
+  (VLMs with camera/image inputs), and local autonomous agents. Use when securing
+  inference endpoints, preventing optical/multimodal prompt injection, sizing inference
+  context windows, or hardening model output rendering.
 ---
 
-# AI Security Hardening Runbook
+# Inference & Edge Model Security Hardening Runbook
 
-This skill guides you through auditing and securing AI applications (LLMs, VLMs, autonomous agents, and local inference servers) against adversarial exploitation, unauthorized privilege escalation, and data exfiltration.
+This skill guides you through auditing and securing local and edge model inference deployments (e.g. `llama-server`, `vLLM`, Flask/FastAPI model wrappers, Vision-Language Models with live video/camera feeds, and local agent endpoints) against adversarial exploitation, multimodal prompt injection, context exhaustion, and endpoint exposure.
 
-Follow this systematic process based on lessons learned from real-world multimodal and agent testbenches (OWASP Top 10 for LLMs 2025).
+Follow this systematic process based on lessons learned from real-world edge testbenches and local model serving (OWASP Top 10 for LLMs 2025).
 
 ---
 
-## 1. Quick Audit Matrix (Triage)
+## 1. Quick Audit Matrix (Inference Surface Triage)
 
-When evaluating an AI application or service, verify these 6 critical attack surfaces:
+When evaluating a local inference service, model wrapper, or VLM endpoint, verify these 6 critical attack surfaces:
 
 | Vector | Attack Type | Vulnerability Signature | Hardening Requirement |
 | :--- | :--- | :--- | :--- |
-| **V1: Multimodal / Optical** | Prompt Injection via Camera / OCR | VLM treats visual text tokens as instructions | Rigid system prompt demarcating vision as passive data |
-| **V2: Secondary Ingestion** | Indirect Prompt Injection | Auxiliary fields (`note`, `tag`, `metadata`) concatenated into prompt | XML-style boundary isolation (`<<<FIELD>>>`) |
-| **V3: Agent Prefill Exhaustion** | Context Denial of Service / Crash | Llama-server / endpoint allocated with small `-c` (<8k tokens) | Sizing context window to agent requirements (`-c 32768`) |
-| **V4: Behavioral Hijacking** | Persona Overwrite / Lockout | Attacker tells model to repeat a single token or refuse tasks | Strict role anchor + fallback validation / reset state |
-| **V5: Insecure Output Handling** | Stored / Reflected DOM XSS | LLM responses rendered directly via `.innerHTML` | Strict DOM manipulation using `.textContent` / sanitized markdown |
-| **V6: Local Engine Exposure** | Remote Code Execution (RCE) | Debuggers enabled on `0.0.0.0` or unauthenticated API endpoints | Bind local backends, disable Flask/FastAPI debug mode in prod |
+| **V1: Multimodal / Optical** | Prompt Injection via Camera / OCR | VLM treats visual text tokens in camera feed as instructions | Rigid system prompt demarcating vision as passive sensory data |
+| **V2: Secondary Ingestion** | Indirect Prompt Injection | Auxiliary inference metadata (`notes`, `tags`, telemetry) concatenated raw | XML-style boundary isolation (`<<<FIELD>>>`) |
+| **V3: Agent Prefill Exhaustion** | Context Denial of Service / Crash | Inference engine (`llama-server`) allocated with small `-c` (<8k tokens) | Sizing context window to agent requirements (`-c 32768`) |
+| **V4: Behavioral Hijacking** | Persona Overwrite / Lockout | Attacker forces local model to loop on single token or mute response | Strict role anchor + fallback validation / reset state |
+| **V5: Insecure Output Handling** | Stored / Reflected DOM XSS | Inference responses rendered directly via `.innerHTML` | Strict DOM manipulation using `.textContent` / sanitized markdown |
+| **V6: Inference Engine Exposure** | Remote Code Execution (RCE) | Debuggers enabled on `0.0.0.0` or unauthenticated inference API | Bind local engines to loopback, disable Flask/FastAPI debug mode |
 
 ---
 
@@ -111,7 +112,7 @@ When evaluating an AI application or service, verify these 6 critical attack sur
 
 ## 3. Verification Checklist
 
-Before certifying an AI system as hardened:
+Before certifying a local or edge inference deployment as hardened:
 - [ ] Multimodal prompts separate visual sensory data from control instructions.
 - [ ] All untrusted inputs (primary queries and secondary metadata) are wrapped in rigid delimiters.
 - [ ] Context limits match the operational profile (agents vs casual conversationalists).
