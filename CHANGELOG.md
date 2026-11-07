@@ -2,6 +2,21 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Fechas en `YYYY-MM-DD`.
 
+## 2026-11-07 — Packs por stack: Supabase, Netlify, Vercel/React
+
+### Agregado
+- Submódulos con skills oficiales, **solo para proyectos que usan esa herramienta**:
+  - `external/supabase-agent-skills` (MIT, v0.1.2, `c9be0e9`): stack `supabase`.
+  - `external/netlify-context-and-tools` (MIT, `c7ef213`): stack `netlify`, 3 de 16 skills (sin `netlify-database`, que compite con Supabase).
+  - `external/vercel-agent-skills` (MIT, `1a2c79d`): stack `react` y stack `vercel`.
+- `install.sh --stack auto|<lista>`, `--list-stacks`, `--with-base`: con `--project --stack` instala solo los packs del proyecto (detectados por archivos de configuración y dependencias) y descarga solo los submódulos necesarios.
+- `.gitmodules`: clave `toolkit-skills` (qué skill y para qué stack) y `shallow = true`.
+- `github/awesome-copilot` en el catálogo como referencia (no se integra).
+
+### Cambiado
+- El validador entiende `toolkit-skills`, falla si upstream renombra un skill declarado y trata como aviso (no error) un `name` upstream que no coincide con su carpeta.
+- `CATALOG.md` muestra el stack de cada skill de `external/`.
+
 ## 2026-11-07 — Cloudflare security-audit como submódulo
 
 ### Agregado

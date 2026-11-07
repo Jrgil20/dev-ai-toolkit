@@ -37,7 +37,10 @@ dev-ai-toolkit/
 ├── standalone/                      # PROPIOS autocontenidos — se instalan aparte
 │   └── ai-first-security-auditor/   # auditoría + remediación (scripts/ + references/)
 ├── external/                        # TERCEROS como submódulos git (siguen la rama upstream)
-│   └── cloudflare-security-audit/   # cloudflare/security-audit-skill (MIT) → skills/security-audit
+│   ├── cloudflare-security-audit/   # general: security-audit (Cloudflare)
+│   ├── supabase-agent-skills/       # pack stack supabase: supabase, supabase-postgres-best-practices
+│   ├── netlify-context-and-tools/   # pack stack netlify: netlify-deploy, -functions, -config
+│   └── vercel-agent-skills/         # pack stack react: react-best-practices, web-design-guidelines · stack vercel: deploy-to-vercel
 ├── vendor/                          # TERCEROS copiados sin modificar (SOURCE.md + licencia)
 │   ├── systematic-debugging/ · verification-before-completion/ · test-driven-development/   # obra/superpowers (MIT)
 │   ├── webapp-testing/              # anthropics/skills (Apache-2.0)
@@ -78,6 +81,10 @@ Las copias de `vendor/` registran su origen en `SOURCE.md` (repo, commit, fecha,
 | Paquete | Cómo se incorpora | Por qué |
 |---|---|---|
 | [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | **Submódulo** en `external/` (se actualiza con Cloudflare) | Auditoría de seguridad multi-fase con hallazgos verificados por un agente independiente |
+| [supabase/agent-skills](https://github.com/supabase/agent-skills) | **Pack por stack** (`supabase`), submódulo | Solo para proyectos con Supabase: Auth, RLS, migraciones, Edge Functions, pg_cron |
+| [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | **Pack por stack** (`netlify`), submódulo, 3 de 16 skills | Solo para proyectos en Netlify: deploy, functions, netlify.toml |
+| [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | **Pack por stack** (`react`, `vercel`), submódulo | Solo para proyectos React/Next.js o desplegados en Vercel |
+| [github/awesome-copilot](https://github.com/github/awesome-copilot) | Solo referencia | Catálogo de ~457 skills para explorar; calidad variable |
 | [obra/superpowers](https://github.com/obra/superpowers) | 3 skills en `vendor/` + plugin completo opcional | Debugging por causa raíz, TDD estricto, verificación antes de declarar "listo" |
 | [anthropics/skills](https://github.com/anthropics/skills) | `webapp-testing` en `vendor/`; resto vía plugin | skill-creator, mcp-builder, pruebas web con Playwright |
 | [trailofbits/skills](https://github.com/trailofbits/skills) | Solo enlace (CC-BY-SA-4.0) | insecure-defaults, supply-chain, differential-review, static-analysis |
@@ -106,6 +113,26 @@ cd ~/dev-ai-toolkit && ./install.sh          # nivel usuario: skills/ + vendor/ 
 ```
 
 Si ya clonaste sin `--recurse-submodules`, no pasa nada: `install.sh` descarga los submódulos que falten (o hazlo a mano con `git submodule update --init`).
+
+### Packs por stack (Supabase, Netlify, Vercel, React)
+
+Los skills oficiales de Supabase, Netlify y Vercel **solo sirven en proyectos que usan esas herramientas**, así que **no** se instalan con `./install.sh` a secas (cargarían descripciones inútiles en cada sesión). Se instalan por proyecto:
+
+```bash
+cd ~/proyectos/mi-saas
+~/dev-ai-toolkit/install.sh --project --stack auto        # detecta el stack y enlaza solo esos packs en ./.claude/skills
+~/dev-ai-toolkit/install.sh --project --stack supabase    # o elegirlos a mano: supabase, netlify, vercel, react
+~/dev-ai-toolkit/install.sh --list-stacks                 # qué trae cada pack
+```
+
+| Stack | Skills | `--stack auto` lo detecta por |
+|---|---|---|
+| `supabase` | `supabase`, `supabase-postgres-best-practices` | `supabase/config.toml`, `@supabase/*` en package.json, `supabase` en requirements.txt/pyproject.toml |
+| `netlify` | `netlify-deploy`, `netlify-functions`, `netlify-config` | `netlify.toml`, `.netlify/`, `netlify-cli`/`@netlify/*` en package.json |
+| `vercel` | `deploy-to-vercel` | `vercel.json`, `.vercel/`, `vercel` en package.json |
+| `react` | `vercel-react-best-practices`, `web-design-guidelines` | `react` en package.json |
+
+Con `--project --stack`, al proyecto solo van los packs: lo general (tus skills, vendor/, Cloudflare, agentes) ya vive en `~/.claude` y así no aparece duplicado (`--with-base` lo incluye igual). Solo se descargan los submódulos que el pack necesita. Los enlaces apuntan a tu clon local, así que agrega `.claude/skills/` al `.gitignore` del proyecto si no quieres commitearlos.
 
 **Actualizar:**
 
@@ -146,6 +173,9 @@ Sube la carpeta del skill en Configuración → Capacidades. Los subagentes no a
 | "configura un túnel SSH para la GPU/cámara" | `secure-ssh-tunnels` |
 | "audita la seguridad de este MVP hecho con IA" | `standalone/ai-first-security-auditor` |
 | "haz una auditoría de seguridad completa de este repo" / "¿este endpoint es explotable?" | `security-audit` (Cloudflare, `external/`) |
+| "la política RLS no deja leer a este tenant" (proyecto con Supabase) | `supabase` (pack `supabase`) |
+| "agrega una función serverless y redirecciones" (proyecto en Netlify) | `netlify-functions`, `netlify-config` (pack `netlify`) |
+| "este componente re-renderiza demasiado" (proyecto React) | `vercel-react-best-practices` (pack `react`) |
 
 Para forzar un skill en Claude Code: `/code-review`, `/test-strategy`, etc. Para forzar un agente: `@code-reviewer revisa los cambios de auth`.
 

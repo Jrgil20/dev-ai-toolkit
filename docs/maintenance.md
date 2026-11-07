@@ -83,6 +83,19 @@ git -C external/cloudflare-security-audit log --oneline -10 # revisa qué cambi�
 
 Luego en `catalog/community.yaml` actualiza `upstream-commit`, `upstream-commit-date`, `verified` (hoy) y `review-by` (hoy + 3 meses). El validador avisa si el commit fijado no coincide con el del catálogo, así que en el PR de Dependabot verás ese aviso hasta que lo hagas.
 
+**Packs por stack.** Cada submódulo declara en `.gitmodules` qué skills instala y para qué stack:
+
+```ini
+[submodule "external/netlify-context-and-tools"]
+	toolkit-skills = netlify-deploy:netlify netlify-functions:netlify netlify-config:netlify
+	shallow = true
+```
+
+- `<carpeta-en-skills/>:<stack>`; el stack `general` se instala siempre, cualquier otro solo con `install.sh --stack`.
+- Para sumar un skill del mismo upstream (p. ej. `netlify-blobs`), agrégalo a `toolkit-skills` y actualiza `recommended` en el catálogo.
+- Un stack nuevo necesita además su regla de detección en `detect_stacks()` de `install.sh` y una fila en la tabla del README.
+- El validador falla si `toolkit-skills` nombra una carpeta que upstream eliminó o renombró, y avisa si el campo `stack` del catálogo no coincide.
+
 **Agregar uno nuevo:**
 
 ```bash

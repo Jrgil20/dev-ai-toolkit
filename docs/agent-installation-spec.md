@@ -66,7 +66,13 @@ Paso 3: Enlace de Skills con Política de Advertencia
   3.0 Si existe .gitmodules, ejecutar `git -C "$SUBMODULE_DIR" submodule update --init`
       para descargar external/ (si falla por falta de red, continuar sin external/).
   3.1 Para cada carpeta `SKILL_PATH` en `$SUBMODULE_DIR/skills/*/`, `$SUBMODULE_DIR/vendor/*/`
-      y `$SUBMODULE_DIR/external/*/skills/*/` (omitir vendor/ o external/ si el usuario lo pide):
+      y los skills de `$SUBMODULE_DIR/external/` declarados con stack `general`
+      (omitir vendor/ o external/ si el usuario lo pide).
+      external/ declara en .gitmodules `submodule.<x>.toolkit-skills = "<carpeta>:<stack> ..."`.
+      Los stacks distintos de `general` (supabase, netlify, vercel, react) son packs para
+      proyectos que usan esa herramienta: instalarlos solo en el ámbito del proyecto y solo
+      si el usuario los pide o el proyecto usa esa herramienta (ver detect_stacks() en install.sh).
+      El nombre del enlace es el `name` del frontmatter (puede diferir de la carpeta).
       a) SKILL_NAME = basename(SKILL_PATH)
       b) DEST_PATH = "$TARGET_SKILLS_DIR/$SKILL_NAME"
       c) Si DEST_PATH ya existe:

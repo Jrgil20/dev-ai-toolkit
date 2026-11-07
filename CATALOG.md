@@ -45,21 +45,33 @@ Copias sin modificar, fijadas a un commit. Ver `SOURCE.md` en cada carpeta.
 
 Siguen la rama upstream: `git submodule update --remote` (o el PR mensual de Dependabot) los trae al día. Clona con `--recurse-submodules`.
 
-| Skill | Upstream | Rama | Commit fijado | Fecha del commit | Licencia | Revisar antes de | Estado |
-|---|---|---|---|---|---|---|---|
-| [`security-audit`](external/cloudflare-security-audit/skills/security-audit/SKILL.md) | [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | main | `c1c8a8c` | 2026-09-14 | MIT | 2027-02-07 | ✅ vigente |
+**Stack**: `general` se instala siempre; el resto son *packs por stack* para **proyectos que usan esa herramienta** y se instalan solo con `./install.sh --project --stack auto` (o `--stack supabase,netlify,vercel,react`).
+
+| Skill | Stack | Upstream | Rama | Commit fijado | Fecha del commit | Licencia | Revisar antes de | Estado |
+|---|---|---|---|---|---|---|---|---|
+| [`security-audit`](external/cloudflare-security-audit/skills/security-audit/SKILL.md) | general | [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | main | `c1c8a8c` | 2026-09-14 | MIT | 2027-02-07 | ✅ vigente |
+| [`netlify-config`](external/netlify-context-and-tools/skills/netlify-config/SKILL.md) | netlify | [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | main | `c7ef213` | 2026-11-05 | MIT | 2027-02-07 | ✅ vigente |
+| [`netlify-deploy`](external/netlify-context-and-tools/skills/netlify-deploy/SKILL.md) | netlify | [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | main | `c7ef213` | 2026-11-05 | MIT | 2027-02-07 | ✅ vigente |
+| [`netlify-functions`](external/netlify-context-and-tools/skills/netlify-functions/SKILL.md) | netlify | [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | main | `c7ef213` | 2026-11-05 | MIT | 2027-02-07 | ✅ vigente |
+| [`vercel-react-best-practices`](external/vercel-agent-skills/skills/react-best-practices/SKILL.md) | react | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | main | `1a2c79d` | 2026-10-27 | MIT (declarada en README, sin archivo LICENSE) | 2027-02-07 | ✅ vigente |
+| [`web-design-guidelines`](external/vercel-agent-skills/skills/web-design-guidelines/SKILL.md) | react | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | main | `1a2c79d` | 2026-10-27 | MIT (declarada en README, sin archivo LICENSE) | 2027-02-07 | ✅ vigente |
+| [`supabase`](external/supabase-agent-skills/skills/supabase/SKILL.md) | supabase | [supabase/agent-skills](https://github.com/supabase/agent-skills) | main | `c9be0e9` | 2026-10-02 | MIT | 2027-02-07 | ✅ vigente |
+| [`supabase-postgres-best-practices`](external/supabase-agent-skills/skills/supabase-postgres-best-practices/SKILL.md) | supabase | [supabase/agent-skills](https://github.com/supabase/agent-skills) | main | `c9be0e9` | 2026-10-02 | MIT | 2027-02-07 | ✅ vigente |
+| [`deploy-to-vercel`](external/vercel-agent-skills/skills/deploy-to-vercel/SKILL.md) | vercel | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | main | `1a2c79d` | 2026-10-27 | MIT (declarada en README, sin archivo LICENSE) | 2027-02-07 | ✅ vigente |
 
 ## Paquetes de la comunidad (`catalog/community.yaml`)
 
 | Paquete | Versión / commit | Fecha upstream | Verificado | Licencia | Recomendados | Integración | Revisar antes de | Estado |
 |---|---|---|---|---|---|---|---|---|
 | [anthropics/skills](https://github.com/anthropics/skills) | `2c5958e` | 2026-11-06 | 2026-11-07 | Apache-2.0 (revisar LICENSE.txt de cada skill) | skill-creator, mcp-builder, webapp-testing, frontend-design | vendor/: webapp-testing | 2027-02-07 | ✅ vigente |
+| [github/awesome-copilot](https://github.com/github/awesome-copilot) | `797337f` | 2026-11-07 | 2026-11-07 | MIT | (explorar) | solo enlace | 2027-02-07 | ✅ vigente |
 | [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | `c1c8a8c` | 2026-09-14 | 2026-11-07 | MIT | security-audit | submódulo `external/cloudflare-security-audit` | 2027-02-07 | ✅ vigente |
 | [SpillwaveSolutions/design-doc-mermaid](https://github.com/SpillwaveSolutions/design-doc-mermaid) | `c36d835` | 2026-08-24 | 2026-11-07 | MIT (declarada en README, sin archivo LICENSE) | design-doc-mermaid | vendor/: design-doc-mermaid | 2027-02-07 | ✅ vigente |
+| [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | `c7ef213` | 2026-11-05 | 2026-11-07 | MIT | netlify-deploy, netlify-functions, netlify-config | submódulo `external/netlify-context-and-tools` | 2027-02-07 | ✅ vigente |
 | [obra/superpowers](https://github.com/obra/superpowers) | 7.0.2 · `22f0b46` | 2026-11-03 | 2026-11-07 | MIT | systematic-debugging, verification-before-completion, test-driven-development, brainstorming + writing-plans + executing-plans | vendor/: systematic-debugging, verification-before-completion, test-driven-development | 2027-02-07 | ✅ vigente |
-| [supabase/agent-skills](https://github.com/supabase/agent-skills) | `c9be0e9` | 2026-10-02 | 2026-11-07 | MIT | supabase-postgres-best-practices | solo enlace | 2027-02-07 | ✅ vigente |
+| [supabase/agent-skills](https://github.com/supabase/agent-skills) | 0.1.2 · `c9be0e9` | 2026-10-02 | 2026-11-07 | MIT | supabase, supabase-postgres-best-practices | submódulo `external/supabase-agent-skills` | 2027-02-07 | ✅ vigente |
 | [trailofbits/skills](https://github.com/trailofbits/skills) | `e4dd0bb` | 2026-11-06 | 2026-11-07 | CC-BY-SA-4.0 | insecure-defaults, supply-chain-risk-auditor, differential-review, static-analysis, sharp-edges | solo enlace | 2027-02-07 | ✅ vigente |
-| [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | `1a2c79d` | 2026-10-27 | 2026-11-07 | MIT | react-best-practices, web-design-guidelines | solo enlace | 2027-02-07 | ✅ vigente |
+| [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | `1a2c79d` | 2026-10-27 | 2026-11-07 | MIT (declarada en README, sin archivo LICENSE) | react-best-practices, web-design-guidelines, deploy-to-vercel | submódulo `external/vercel-agent-skills` | 2027-02-07 | ✅ vigente |
 
 ## Subagentes de Claude Code (`adapters/claude-code/agents/`)
 
