@@ -5,6 +5,14 @@ description: >-
   inference (llama-server/vLLM), edge compute clusters (e.g. NVIDIA DGX Spark),
   and peripheral streaming (webcams/sensors). Use when creating local port forwarding (-L),
   reverse port forwarding (-R), dynamic proxies (-D), or declarative ~/.ssh/config profiles.
+metadata:
+  added: "2026-10-22"
+  updated: "2026-10-22"
+  review-by: "2027-04-22"
+  volatility: "tooling"
+  status: "active"
+  lang: "en"
+  origin: "own"
 ---
 
 # Secure SSH Tunnels Runbook

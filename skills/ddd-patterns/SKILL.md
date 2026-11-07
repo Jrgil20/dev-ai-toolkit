@@ -1,6 +1,14 @@
 ---
 name: ddd-patterns
 description: Patrones tácticos de Domain-Driven Design (Entity, Value Object, Aggregate, Repository, Domain Event, Domain Service) con criterios deterministas para elegir entre ellos, y catálogo de antipatrones (Primitive Obsession, Anemic Domain Model). Usar siempre que se modele dominio, se pregunte "¿esto es entity o value object?", "¿dónde va esta regla?", se diseñe un aggregate, o se detecte lógica de negocio dispersa fuera del dominio.
+metadata:
+  added: "2026-07-01"
+  updated: "2026-07-01"
+  review-by: "2027-07-01"
+  volatility: "conceptual"
+  status: "active"
+  lang: "es"
+  origin: "own"
 ---
 
 # Patrones Tácticos DDD

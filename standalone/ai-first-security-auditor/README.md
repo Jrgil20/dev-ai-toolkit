@@ -1,5 +1,7 @@
 # AI-First Security Auditor (`ai-first-security-auditor`)
 
+> Ubicación en dev-ai-toolkit: `standalone/ai-first-security-auditor/` (movido desde la raíz el 2026-11-07). `install.sh` no lo enlaza; instálalo con las opciones de abajo. Complemento recomendado: `insecure-defaults` y `supply-chain-risk-auditor` de Trail of Bits (ver `catalog/community.yaml`).
+
 Paquete de auditoría de seguridad y remediación directa diseñado para proyectos construidos intensivamente con asistentes de IA (Cursor, GitHub Copilot, Antigravity, Claude Code) donde la seguridad, las políticas RLS y las fronteras de Clean/Hexagonal Architecture fueron relegadas durante el desarrollo rápido.
 
 ## Estructura del Paquete

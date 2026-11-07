@@ -1,6 +1,14 @@
 ---
 name: test-strategy
 description: Diseño de tests con priorización determinista (qué testear primero), patrón AAA, nomenclatura estándar y estructura por tipo de test. Usar siempre que el usuario pida escribir tests, "agrega tests para X", "¿cómo testeo esto?", "necesito cobertura", o cuando se implemente lógica nueva sin tests, incluso si el usuario no los pidió explícitamente (proponerlos).
+metadata:
+  added: "2026-07-01"
+  updated: "2026-07-01"
+  review-by: "2027-07-01"
+  volatility: "conceptual"
+  status: "active"
+  lang: "es"
+  origin: "own"
 ---
 
 # Test Strategy

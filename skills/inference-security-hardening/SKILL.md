@@ -6,6 +6,14 @@ description: >-
   (VLMs with camera/image inputs), and local autonomous agents. Use when securing
   inference endpoints, preventing optical/multimodal prompt injection, sizing inference
   context windows, or hardening model output rendering.
+metadata:
+  added: "2026-10-22"
+  updated: "2026-10-22"
+  review-by: "2027-04-22"
+  volatility: "tooling"
+  status: "active"
+  lang: "en"
+  origin: "own"
 ---
 
 # Inference & Edge Model Security Hardening Runbook

@@ -1,6 +1,14 @@
 ---
 name: code-review
 description: Proceso determinista de revisión de código con checklist de corrección, seguridad, performance y mantenibilidad, y formato de reporte fijo. Usar siempre que el usuario pida revisar código, un PR, un diff o un módulo ("revisa este código", "code review", "¿está bien este cambio?", "dale una mirada a X"), o comparta código esperando feedback de calidad, incluso si no menciona la palabra "review".
+metadata:
+  added: "2026-07-01"
+  updated: "2026-07-01"
+  review-by: "2027-07-01"
+  volatility: "conceptual"
+  status: "active"
+  lang: "es"
+  origin: "own"
 ---
 
 # Code Review

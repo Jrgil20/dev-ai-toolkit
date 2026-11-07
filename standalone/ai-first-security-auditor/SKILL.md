@@ -1,6 +1,14 @@
 ---
 name: ai-first-security-auditor
 description: Audit and remediate security vulnerabilities in AI-generated (vibe-coded or assistant-built) projects where security was relegated during rapid development. Use when the user asks to audit, harden, review, or fix security in AI-first codebases, MVPs, or TypeScript, Node.js, React, Expo, PostgreSQL, Supabase, and Docker stacks, providing a CVE and CWE Risk Matrix along with direct code remediation.
+metadata:
+  added: "2026-10-13"
+  updated: "2026-10-14"
+  review-by: "2027-04-14"
+  volatility: "tooling"
+  status: "active"
+  lang: "en"
+  origin: "own"
 ---
 
 # AI-First Security Auditor
