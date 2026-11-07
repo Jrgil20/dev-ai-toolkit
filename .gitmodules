@@ -2,3 +2,23 @@
 	path = external/cloudflare-security-audit
 	url = https://github.com/cloudflare/security-audit-skill
 	branch = main
+	toolkit-skills = security-audit:general
+	shallow = true
+[submodule "external/supabase-agent-skills"]
+	path = external/supabase-agent-skills
+	url = https://github.com/supabase/agent-skills
+	branch = main
+	toolkit-skills = supabase:supabase supabase-postgres-best-practices:supabase
+	shallow = true
+[submodule "external/netlify-context-and-tools"]
+	path = external/netlify-context-and-tools
+	url = https://github.com/netlify/context-and-tools
+	branch = main
+	toolkit-skills = netlify-deploy:netlify netlify-functions:netlify netlify-config:netlify
+	shallow = true
+[submodule "external/vercel-agent-skills"]
+	path = external/vercel-agent-skills
+	url = https://github.com/vercel-labs/agent-skills
+	branch = main
+	toolkit-skills = deploy-to-vercel:vercel react-best-practices:react web-design-guidelines:react
+	shallow = true

@@ -15,6 +15,8 @@
 #   review-by        fecha límite para re-verificar (verified + 3 meses)
 #   vendored         skills copiados a vendor/ (lista vacía = solo enlace)
 #   submodule        (opcional) ruta del submódulo git en external/ que sigue al upstream
+#   stack            (opcional) stacks de los skills del submódulo (según .gitmodules
+#                    toolkit-skills); sin stack = general, se instala siempre
 #   recommended      skills/plugins recomendados de ese paquete y por qué
 #   install          cómo instalar (por herramienta)
 #   notes            advertencias (licencia, dependencias, solapamientos)
@@ -150,28 +152,71 @@ entries:
       assets/ ni scripts/. Los scripts requieren Python y mermaid-cli (mmdc). El
       flujo de recuperación de errores menciona MCPs opcionales (perplexity, brave).
 
-  # --- Solo referencia (no seleccionados aún) -------------------------------
+  # --- Packs por stack (submódulos; solo para proyectos que usan esa herramienta) ---
   - id: supabase-agent-skills
     repo: supabase/agent-skills
     kind: collection
     license: MIT
+    submodule: external/supabase-agent-skills
+    stack: supabase
     upstream-commit: "c9be0e9"
     upstream-commit-date: "2026-10-02"
+    upstream-version: "0.1.2"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: []
+    recommended:
+      - name: supabase
+        why: >-
+          Cualquier tarea con Supabase: Auth/sesiones/JWT, RLS, migraciones, Edge
+          Functions, Realtime, Storage, pg_cron, SSR con supabase-js (React, SvelteKit),
+          logs y errores típicos. Clave para el SaaS multi-tenant (RLS por cliente).
+      - name: supabase-postgres-best-practices
+        why: Rendimiento y buenas prácticas de Postgres en Supabase.
+    install:
+      this-repo: "./install.sh --project --stack supabase   (o --stack auto en un proyecto con Supabase)"
+      any-agent: "npx skills add supabase/agent-skills"
+    notes: >-
+      Solo para proyectos que usan Supabase. --stack auto lo detecta por
+      supabase/config.toml, dependencias @supabase/* en package.json, o supabase en
+      requirements.txt/pyproject.toml.
+
+  - id: netlify-context-and-tools
+    repo: netlify/context-and-tools
+    kind: collection
+    license: MIT
+    submodule: external/netlify-context-and-tools
+    stack: netlify
+    upstream-commit: "c7ef213"
+    upstream-commit-date: "2026-11-05"
     upstream-version: "n/a"
     verified: "2026-11-07"
     review-by: "2027-02-07"
     vendored: []
     recommended:
-      - name: supabase-postgres-best-practices
-        why: Relevante para tus proyectos Supabase (multi-tenant SaaS, RLS).
+      - name: netlify-deploy
+        why: Deploys por Git o CLI (preview/producción), variables de entorno.
+      - name: netlify-functions
+        why: Funciones serverless (TS/JS/Go) para endpoints y backend.
+      - name: netlify-config
+        why: netlify.toml, _redirects, _headers, comandos de build.
     install:
-      any-agent: "npx skills add supabase/agent-skills"
-    notes: No seleccionado en esta ronda; listado como candidato.
+      this-repo: "./install.sh --project --stack netlify   (o --stack auto en un proyecto con Netlify)"
+      claude-code-plugin: "/plugin install netlify-skills@claude-plugins-official  # todos + MCP de Netlify"
+    notes: >-
+      Solo para proyectos que usan Netlify. Se instalan 3 de 16 skills a propósito:
+      se excluye netlify-database (Postgres propio de Netlify) porque compite con
+      Supabase y el agente podría sugerirlo en proyectos que ya usan Supabase; el resto
+      (blobs, forms, identity, edge functions, AI gateway...) se agrega en .gitmodules
+      (toolkit-skills) cuando un proyecto lo necesite. --stack auto detecta netlify.toml,
+      .netlify/ o dependencias de Netlify en package.json.
 
   - id: vercel-agent-skills
     repo: vercel-labs/agent-skills
     kind: collection
-    license: MIT
+    license: MIT (declarada en README, sin archivo LICENSE)
+    submodule: external/vercel-agent-skills
+    stack: react, vercel
     upstream-commit: "1a2c79d"
     upstream-commit-date: "2026-10-27"
     upstream-version: "n/a"
@@ -180,9 +225,37 @@ entries:
     vendored: []
     recommended:
       - name: react-best-practices
-        why: Patrones de rendimiento para React/Next.js.
+        why: >-
+          Rendimiento en React/Next.js (stack react). Se instala con el nombre
+          vercel-react-best-practices, que es el declarado por upstream.
       - name: web-design-guidelines
-        why: Auditoría de UI/accesibilidad.
+        why: Auditoría de UI/UX y accesibilidad (stack react).
+      - name: deploy-to-vercel
+        why: Deploys y previews en Vercel (stack vercel).
     install:
+      this-repo: "./install.sh --project --stack react,vercel   (o --stack auto)"
       any-agent: "npx skills add vercel-labs/agent-skills"
-    notes: No seleccionado en esta ronda; listado como candidato.
+    notes: >-
+      Dos stacks en un mismo submódulo: react (proyectos React/Next.js, detectado por
+      "react" en package.json) y vercel (vercel.json, .vercel/ o dependencia vercel).
+
+  # --- Solo referencia (catálogos para buscar, no se integran) ------------------
+  - id: awesome-copilot
+    repo: github/awesome-copilot
+    kind: collection
+    license: MIT
+    upstream-commit: "797337f"
+    upstream-commit-date: "2026-11-07"
+    upstream-version: "n/a"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: []
+    recommended:
+      - name: (explorar)
+        why: >-
+          Catálogo comunitario de ~457 skills (más agents, instructions y hooks) que
+          Microsoft recomienda como fuente de ejemplos. Calidad muy variable: revisar
+          cada skill antes de adoptarlo.
+    install:
+      browse: "https://github.com/github/awesome-copilot/tree/main/skills"
+    notes: No se integra completo; si un skill vale la pena, se agrega aparte.

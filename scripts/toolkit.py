@@ -118,7 +118,8 @@ def submodules() -> list[dict]:
     """Submódulos declarados en .gitmodules: path, url, branch y commit fijado (gitlink)."""
     if not (ROOT / ".gitmodules").exists():
         return []
-    raw = git("config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.(path|url|branch)$")
+    raw = git("config", "-f", ".gitmodules", "--get-regexp",
+              r"^submodule\..*\.(path|url|branch|toolkit-skills)$")
     mods: dict[str, dict] = {}
     for line in (raw or "").splitlines():
         key, value = line.split(" ", 1)
@@ -135,7 +136,10 @@ def submodules() -> list[dict]:
             staged = git("ls-files", "-s", path)
             if staged and staged.startswith("160000"):
                 pinned = staged.split()[1]
-        out.append({"name": name, "path": path, "url": m.get("url", ""),
+        # toolkit-skills = "<carpeta>:<stack> ..." (sin la clave: todos, stack general)
+        declared = [tuple(pair.split(":", 1)) if ":" in pair else (pair, "general")
+                    for pair in m.get("toolkit-skills", "").split()]
+        out.append({"name": name, "path": path, "url": m.get("url", ""), "skills": declared,
                     "branch": m.get("branch", ""), "pinned": pinned,
                     "initialized": (ROOT / path / ".git").exists()})
     return out
@@ -186,12 +190,15 @@ class Report:
 
 
 # --------------------------------------------------------------------------- validaciones
-def check_spec(skill_dir: Path, fm: dict, rep: Report, where: str):
+def check_spec(skill_dir: Path, fm: dict, rep: Report, where: str, upstream: bool = False):
+    """upstream=True: contenido de terceros que no controlamos; desajustes menores = aviso."""
     name = fm.get("name")
     if not isinstance(name, str) or not NAME_RE.fullmatch(name) or len(name) > 64:
         rep.err(where, f"name inválido: {name!r}")
     elif name != skill_dir.name:
-        rep.err(where, f"name '{name}' no coincide con la carpeta '{skill_dir.name}'")
+        (rep.warn if upstream else rep.err)(
+            where, f"name '{name}' no coincide con la carpeta '{skill_dir.name}'"
+            + (" (upstream; se instala como '" + name + "')" if upstream else ""))
     desc = fm.get("description")
     if not isinstance(desc, str) or not desc.strip():
         rep.err(where, "description vacía o ausente")
@@ -376,19 +383,33 @@ def load_external(rep: Report, community: dict[str, dict]) -> list[Item]:
         if not sm["initialized"]:
             rep.warn(where, "submódulo no inicializado: git submodule update --init")
             skill_dirs = []
+        elif sm["skills"]:
+            skill_dirs = []
+            for folder, stack in sm["skills"]:
+                sdir = ROOT / where / "skills" / folder
+                if (sdir / "SKILL.md").exists():
+                    skill_dirs.append((sdir, stack))
+                else:
+                    rep.err(where, f"toolkit-skills declara '{folder}' pero no existe "
+                                   f"skills/{folder}/SKILL.md (¿upstream lo renombró?)")
         else:
-            skill_dirs = sorted(p.parent for p in (ROOT / where).glob("skills/*/SKILL.md")) \
+            found = sorted(p.parent for p in (ROOT / where).glob("skills/*/SKILL.md")) \
                 or sorted(p.parent for p in (ROOT / where).glob("SKILL.md"))
+            skill_dirs = [(d, "general") for d in found]
             if not skill_dirs:
                 rep.err(where, "el submódulo no contiene ningún SKILL.md")
-        for sdir in skill_dirs:
+        stacks = sorted({s for _, s in sm["skills"]} - {"general"})
+        if stacks and entry.get("stack") != ", ".join(stacks):
+            rep.warn(f"catalog/community.yaml#{entry.get('id')}",
+                     f"campo stack debería ser '{', '.join(stacks)}' (según .gitmodules)")
+        for sdir, stack in skill_dirs:
             w = str(sdir.relative_to(ROOT))
             try:
                 fm, body = read_frontmatter(sdir / "SKILL.md")
             except ValueError as exc:
                 rep.err(w, str(exc))
                 continue
-            check_spec(sdir, fm, rep, w)
+            check_spec(sdir, fm, rep, w, upstream=True)
             check_body(sdir, body, rep, w)
             commit_date = git("log", "-1", "--format=%cs", cwd=ROOT / where) or ""
             items.append(Item("external", fm.get("name", sdir.name), w,
@@ -396,6 +417,7 @@ def load_external(rep: Report, community: dict[str, dict]) -> list[Item]:
                               origin=f"https://github.com/{entry.get('repo', '')}",
                               license=entry.get("license", ""),
                               extra={"commit": (sm["pinned"] or "")[:7], "branch": sm["branch"],
+                                     "stack": stack,
                                      "verified": entry.get("verified", ""),
                                      "submodule": where}))
     return items
@@ -493,12 +515,17 @@ def render_catalog(items: list[Item], today: dt.date) -> str:
     out += ["", "## Skills de terceros por submódulo (`external/`)", "",
             "Siguen la rama upstream: `git submodule update --remote` (o el PR mensual de "
             "Dependabot) los trae al día. Clona con `--recurse-submodules`.", "",
-            "| Skill | Upstream | Rama | Commit fijado | Fecha del commit | Licencia "
+            "**Stack**: `general` se instala siempre; el resto son *packs por stack* para "
+            "**proyectos que usan esa herramienta** y se instalan solo con "
+            "`./install.sh --project --stack auto` (o `--stack supabase,netlify,vercel,react`).", "",
+            "| Skill | Stack | Upstream | Rama | Commit fijado | Fecha del commit | Licencia "
             "| Revisar antes de | Estado |",
-            "|---|---|---|---|---|---|---|---|"]
-    for i in rows("external"):
+            "|---|---|---|---|---|---|---|---|---|"]
+    for i in sorted(rows("external"), key=lambda i: (i.extra["stack"] != "general",
+                                                    i.extra["stack"], i.name)):
         repo = i.origin.replace("https://github.com/", "")
-        out.append(f"| [`{i.name}`]({i.path}/SKILL.md) | [{repo}]({i.origin}) | {i.extra['branch']} "
+        out.append(f"| [`{i.name}`]({i.path}/SKILL.md) | {i.extra['stack']} "
+                   f"| [{repo}]({i.origin}) | {i.extra['branch']} "
                    f"| `{i.extra['commit']}` | {i.updated} | {i.license} | {i.review_by} "
                    f"| {freshness(i.review_by, today)} |")
     out += ["", "## Paquetes de la comunidad (`catalog/community.yaml`)", "",
