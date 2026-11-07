@@ -1,0 +1,14 @@
+# Mantiene al día los skills de terceros que viven como submódulos en external/.
+# Cuando Cloudflare (u otro upstream) publique cambios, Dependabot abre un PR que
+# mueve el submódulo; el validador avisará que actualices las fechas en
+# catalog/community.yaml (upstream-commit, upstream-commit-date, verified, review-by).
+version: 2
+updates:
+  - package-ecosystem: gitsubmodule
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(external)"
+    labels:
+      - external-skills

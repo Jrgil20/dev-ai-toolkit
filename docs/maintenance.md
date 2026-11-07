@@ -10,6 +10,7 @@ Los skills envejecen a ritmos distintos: un principio de Clean Architecture dura
 |---|---|---|
 | Skill propio (`skills/`, `standalone/`) | Frontmatter `metadata` del `SKILL.md` (campo estándar del spec [agentskills.io](https://agentskills.io/specification)) | `added`, `updated`, `review-by`, `volatility`, `status`, `lang`, `origin` |
 | Skill de terceros (`vendor/`) | `vendor/<skill>/SOURCE.md` (el `SKILL.md` upstream no se toca) | `upstream-commit`, `upstream-commit-date`, `synced`, `review-by`, `license`, `modified` |
+| Skill de terceros por submódulo (`external/`) | Entrada de `catalog/community.yaml` con `submodule: external/<x>`; el commit fijado lo guarda git | `upstream-commit`, `upstream-commit-date`, `verified`, `review-by` |
 | Paquete de la comunidad (solo enlace) | `catalog/community.yaml` | `upstream-commit`, `upstream-commit-date`, `verified`, `review-by` |
 | Subagentes (`adapters/`) | Derivadas del historial git (no se agregan campos extra al formato de Claude Code) | primer/último commit + 6 meses |
 | Datos volátiles dentro de un skill (precios, versiones) | El propio archivo de referencia, por fila | columna "Verificado" (ver `deployment-cost-expert/references/pricing-snapshot.md`) |
@@ -67,6 +68,30 @@ Reglas de licencia para vendorizar:
 - MIT / Apache-2.0: permitido, con `SOURCE.md` + texto de licencia upstream.
 - CC-BY-SA, GPL u otras share-alike/copyleft: **no** se copian; solo se enlazan en `catalog/community.yaml`.
 - Sin licencia declarada: no se copian.
+
+## 4b. Submódulos de `external/`
+
+Para upstreams que se mantienen activamente y cuya licencia permite redistribuir, se prefiere un submódulo a una copia: se actualiza con un comando y no hay que diffear a mano.
+
+**Actualizar** (Dependabot lo propone cada mes con un PR; a mano):
+
+```bash
+python3 scripts/toolkit.py external                         # ¿va atrasado?
+git submodule update --remote external/cloudflare-security-audit
+git -C external/cloudflare-security-audit log --oneline -10 # revisa qué cambió
+```
+
+Luego en `catalog/community.yaml` actualiza `upstream-commit`, `upstream-commit-date`, `verified` (hoy) y `review-by` (hoy + 3 meses). El validador avisa si el commit fijado no coincide con el del catálogo, así que en el PR de Dependabot verás ese aviso hasta que lo hagas.
+
+**Agregar uno nuevo:**
+
+```bash
+git submodule add -b main https://github.com/<owner>/<repo> external/<nombre>
+```
+
+y su entrada en `catalog/community.yaml` con `submodule: external/<nombre>`. `install.sh` enlaza cada `external/<x>/skills/*/SKILL.md` (o `external/<x>/SKILL.md`) automáticamente.
+
+Advertencia: un submódulo trae lo que publique el upstream. Revisa el diff del PR de Dependabot antes de mergear; un skill puede incluir scripts que el agente ejecutará.
 
 ## 5. Agregar un paquete de la comunidad al catálogo
 

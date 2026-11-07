@@ -10,7 +10,7 @@ Base personal de **skills** (portables) y **subagentes** (adaptadores por herram
 2. **Subagentes como adaptadores.** Viven en `adapters/claude-code/` porque su formato (campos `tools`, `model`, `skills`) es específico de Claude Code. Si otra herramienta soporta agentes, se agrega `adapters/<tool>/` sin tocar los skills.
 3. **Determinismo.** Cada skill define proceso paso a paso, criterios de decisión en orden fijo y plantillas de salida exactas.
 4. **Todo tiene fecha.** Cada skill registra cuándo entró, cuándo cambió y hasta cuándo es confiable (`review-by`). Lo vencido se detecta automáticamente. Ver [docs/maintenance.md](docs/maintenance.md).
-5. **Terceros con trazabilidad.** Lo de la comunidad se copia solo si la licencia lo permite, fijado a un commit y sin modificar (`vendor/`); el resto se referencia en un catálogo con su fecha de verificación.
+5. **Terceros con trazabilidad.** Lo de la comunidad entra de tres formas: como **submódulo git** que sigue al upstream (`external/`), como copia fijada a un commit (`vendor/`, solo si la licencia lo permite) o como simple enlace en el catálogo. Todo con su fecha de verificación.
 
 ## Estructura
 
@@ -19,7 +19,8 @@ dev-ai-toolkit/
 ├── README.md · CATALOG.md (generado) · CHANGELOG.md
 ├── install.sh                       # symlinks → ~/.claude/ (o ./.claude con --project)
 ├── scripts/toolkit.py               # validate (spec + fechas + vencidos) · catalog (genera CATALOG.md)
-├── .github/workflows/skills-health.yml  # valida en PR + issue mensual con lo vencido
+├── .github/workflows/skills-health.yml  # valida en PR + issue mensual con lo vencido/atrasado
+├── .github/dependabot.yml           # PR mensual si un submódulo de external/ tiene cambios
 ├── docs/
 │   ├── maintenance.md               # política de fechas, revisión y re-sync de vendor/
 │   └── agent-installation-spec.md   # instalación nativa en 14+ agentes (matriz Gentle-AI)
@@ -35,6 +36,8 @@ dev-ai-toolkit/
 │   └── executive-summary-cloud/
 ├── standalone/                      # PROPIOS autocontenidos — se instalan aparte
 │   └── ai-first-security-auditor/   # auditoría + remediación (scripts/ + references/)
+├── external/                        # TERCEROS como submódulos git (siguen la rama upstream)
+│   └── cloudflare-security-audit/   # cloudflare/security-audit-skill (MIT) → skills/security-audit
 ├── vendor/                          # TERCEROS copiados sin modificar (SOURCE.md + licencia)
 │   ├── systematic-debugging/ · verification-before-completion/ · test-driven-development/   # obra/superpowers (MIT)
 │   ├── webapp-testing/              # anthropics/skills (Apache-2.0)
@@ -65,14 +68,16 @@ metadata:
 pip install pyyaml
 python3 scripts/toolkit.py validate     # errores + vencidos + por vencer
 python3 scripts/toolkit.py catalog      # regenera CATALOG.md
+python3 scripts/toolkit.py external     # ¿los submódulos de external/ están al día con upstream?
 ```
 
-Las copias de `vendor/` registran su origen en `SOURCE.md` (repo, commit, fecha, licencia, `review-by`), y los paquetes enlazados en `catalog/community.yaml`. El día 1 de cada mes, GitHub Actions abre un issue `stale-skills` si algo venció.
+Las copias de `vendor/` registran su origen en `SOURCE.md` (repo, commit, fecha, licencia, `review-by`); los submódulos de `external/` y los paquetes enlazados, en `catalog/community.yaml`. El día 1 de cada mes, GitHub Actions abre un issue `stale-skills` si algo venció.
 
 ## Skills de la comunidad
 
 | Paquete | Cómo se incorpora | Por qué |
 |---|---|---|
+| [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | **Submódulo** en `external/` (se actualiza con Cloudflare) | Auditoría de seguridad multi-fase con hallazgos verificados por un agente independiente |
 | [obra/superpowers](https://github.com/obra/superpowers) | 3 skills en `vendor/` + plugin completo opcional | Debugging por causa raíz, TDD estricto, verificación antes de declarar "listo" |
 | [anthropics/skills](https://github.com/anthropics/skills) | `webapp-testing` en `vendor/`; resto vía plugin | skill-creator, mcp-builder, pruebas web con Playwright |
 | [trailofbits/skills](https://github.com/trailofbits/skills) | Solo enlace (CC-BY-SA-4.0) | insecure-defaults, supply-chain, differential-review, static-analysis |
@@ -92,12 +97,24 @@ Comandos de instalación, commits verificados y candidatos (Supabase, Vercel) en
 ### Claude Code (Linux / macOS)
 
 ```bash
-git clone https://github.com/Jrgil20/dev-ai-toolkit ~/dev-ai-toolkit
-cd ~/dev-ai-toolkit && ./install.sh          # nivel usuario: skills/ + vendor/ + agentes
+# --recurse-submodules descarga también los skills de external/ (p. ej. el de Cloudflare)
+git clone --recurse-submodules https://github.com/Jrgil20/dev-ai-toolkit ~/dev-ai-toolkit
+cd ~/dev-ai-toolkit && ./install.sh          # nivel usuario: skills/ + vendor/ + external/ + agentes
 ./install.sh --project                       # dentro de un proyecto
-./install.sh --no-vendor                     # solo lo propio
+./install.sh --no-vendor --no-external       # solo lo propio
 ./install.sh --dry-run                       # ver qué haría
 ```
+
+Si ya clonaste sin `--recurse-submodules`, no pasa nada: `install.sh` descarga los submódulos que falten (o hazlo a mano con `git submodule update --init`).
+
+**Actualizar:**
+
+```bash
+git pull --recurse-submodules                # lo propio + la versión de external/ fijada en este repo
+git submodule update --remote                # traer lo último de Cloudflare (y otros upstream) ya mismo
+```
+
+Lo normal es lo primero: cada mes Dependabot abre un PR que mueve los submódulos al último commit upstream, lo revisas, lo mergeas y te llega con `git pull --recurse-submodules`. `python3 scripts/toolkit.py external` dice si algún submódulo va atrasado.
 
 Los symlinks apuntan al repo: `git pull` propaga cambios sin reinstalar. Si ya existe un skill con el mismo nombre, se omite con `[WARN]` (nunca se sobreescribe). Verifica con `/skills` y `/agents`. Los skills de `standalone/` se instalan aparte (ver su README).
 
@@ -128,6 +145,7 @@ Sube la carpeta del skill en Configuración → Capacidades. Los subagentes no a
 | "audita la seguridad del servidor de inferencia/VLM" | `inference-security-hardening` |
 | "configura un túnel SSH para la GPU/cámara" | `secure-ssh-tunnels` |
 | "audita la seguridad de este MVP hecho con IA" | `standalone/ai-first-security-auditor` |
+| "haz una auditoría de seguridad completa de este repo" / "¿este endpoint es explotable?" | `security-audit` (Cloudflare, `external/`) |
 
 Para forzar un skill en Claude Code: `/code-review`, `/test-strategy`, etc. Para forzar un agente: `@code-reviewer revisa los cambios de auth`.
 

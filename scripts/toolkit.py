@@ -3,13 +3,16 @@
 
 Subcomandos:
   validate   Valida frontmatter (spec agentskills.io), fechas de metadata,
-             archivos referenciados, SOURCE.md de vendor/ y el catálogo de
-             comunidad. Reporta lo vencido (review-by pasado) y lo que vence pronto.
+             archivos referenciados, SOURCE.md de vendor/, submódulos de external/
+             y el catálogo de comunidad. Reporta lo vencido y lo que vence pronto.
   catalog    Genera CATALOG.md con fechas y estado de vigencia de todo el kit.
+  external   Compara cada submódulo de external/ con su rama upstream (requiere red)
+             y dice si está al día o cuántos commits va atrasado.
 
 Uso:
   python3 scripts/toolkit.py validate [--fail-on-stale] [--today YYYY-MM-DD]
   python3 scripts/toolkit.py catalog  [--today YYYY-MM-DD]
+  python3 scripts/toolkit.py external [--fail-if-behind]
 
 Requiere: Python 3.9+, PyYAML (pip install pyyaml) y git (para fechas de agentes).
 """
@@ -101,6 +104,41 @@ def git_dates(path: Path) -> tuple[str | None, str | None]:
     except (subprocess.CalledProcessError, FileNotFoundError):
         return None, None
     return (out[-1], out[0]) if out else (None, None)
+
+
+def git(*args: str, cwd: Path = ROOT) -> str | None:
+    try:
+        return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True,
+                              check=True).stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def submodules() -> list[dict]:
+    """Submódulos declarados en .gitmodules: path, url, branch y commit fijado (gitlink)."""
+    if not (ROOT / ".gitmodules").exists():
+        return []
+    raw = git("config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.(path|url|branch)$")
+    mods: dict[str, dict] = {}
+    for line in (raw or "").splitlines():
+        key, value = line.split(" ", 1)
+        name, field_ = key[len("submodule."):].rsplit(".", 1)
+        mods.setdefault(name, {})[field_] = value
+    out = []
+    for name, m in sorted(mods.items()):
+        path = m.get("path", name)
+        pinned = None
+        tree = git("ls-tree", "HEAD", path)          # "160000 commit <sha>\t<path>"
+        if tree and tree.split()[1] == "commit":
+            pinned = tree.split()[2]
+        else:                                        # aún no commiteado: usar el índice
+            staged = git("ls-files", "-s", path)
+            if staged and staged.startswith("160000"):
+                pinned = staged.split()[1]
+        out.append({"name": name, "path": path, "url": m.get("url", ""),
+                    "branch": m.get("branch", ""), "pinned": pinned,
+                    "initialized": (ROOT / path / ".git").exists()})
+    return out
 
 
 def freshness(review_by: str, today: dt.date, status: str = "active") -> str:
@@ -274,16 +312,17 @@ def load_vendor(rep: Report, today: dt.date) -> list[Item]:
     return items
 
 
-def load_community(rep: Report, vendor_names: set[str]) -> list[Item]:
+def load_community(rep: Report, vendor_names: set[str]) -> tuple[list[Item], dict[str, dict]]:
     path = ROOT / "catalog" / "community.yaml"
     where = "catalog/community.yaml"
     if not path.exists():
         rep.err(where, "no existe")
-        return []
+        return [], {}
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    items, seen = [], set()
+    items, seen, entries = [], set(), {}
     for entry in data.get("entries", []):
         eid = entry.get("id", "?")
+        entries[eid] = entry
         w = f"{where}#{eid}"
         for key in COMMUNITY_KEYS:
             if key not in entry:
@@ -299,6 +338,9 @@ def load_community(rep: Report, vendor_names: set[str]) -> list[Item]:
         for v in entry.get("vendored") or []:
             if v not in vendor_names:
                 rep.err(w, f"declara vendored '{v}' pero no existe vendor/{v}/")
+        sub = entry.get("submodule")
+        if sub and sub not in {s["path"] for s in submodules()}:
+            rep.err(w, f"declara submodule '{sub}' pero no está en .gitmodules")
         if dates_ok:
             items.append(Item("community", eid, entry.get("repo", ""),
                               updated=str(entry.get("upstream-commit-date", "")),
@@ -307,8 +349,55 @@ def load_community(rep: Report, vendor_names: set[str]) -> list[Item]:
                                      "commit": entry.get("upstream-commit", ""),
                                      "version": entry.get("upstream-version", "n/a"),
                                      "vendored": entry.get("vendored") or [],
+                                     "submodule": entry.get("submodule", ""),
                                      "recommended": [r.get("name") for r in
                                                      entry.get("recommended") or []]}))
+    return items, entries
+
+
+def load_external(rep: Report, community: dict[str, dict]) -> list[Item]:
+    """Skills que llegan por submódulo git (external/). Las fechas de revisión salen de
+    la entrada de catalog/community.yaml que declara `submodule: <path>`."""
+    by_path = {e.get("submodule"): e for e in community.values() if e.get("submodule")}
+    items = []
+    for sm in submodules():
+        where = sm["path"]
+        entry = by_path.get(where)
+        if entry is None:
+            rep.err(where, "submódulo sin entrada en catalog/community.yaml (campo submodule)")
+            continue
+        if not sm["branch"]:
+            rep.warn(where, "sin 'branch' en .gitmodules: `git submodule update --remote` "
+                            "no sabrá qué rama seguir")
+        if sm["pinned"] and not sm["pinned"].startswith(str(entry.get("upstream-commit", "-"))):
+            rep.warn(where, f"el submódulo apunta a {sm['pinned'][:7]} pero el catálogo dice "
+                            f"{entry.get('upstream-commit')}: revisa el cambio y actualiza "
+                            "upstream-commit, upstream-commit-date, verified y review-by")
+        if not sm["initialized"]:
+            rep.warn(where, "submódulo no inicializado: git submodule update --init")
+            skill_dirs = []
+        else:
+            skill_dirs = sorted(p.parent for p in (ROOT / where).glob("skills/*/SKILL.md")) \
+                or sorted(p.parent for p in (ROOT / where).glob("SKILL.md"))
+            if not skill_dirs:
+                rep.err(where, "el submódulo no contiene ningún SKILL.md")
+        for sdir in skill_dirs:
+            w = str(sdir.relative_to(ROOT))
+            try:
+                fm, body = read_frontmatter(sdir / "SKILL.md")
+            except ValueError as exc:
+                rep.err(w, str(exc))
+                continue
+            check_spec(sdir, fm, rep, w)
+            check_body(sdir, body, rep, w)
+            commit_date = git("log", "-1", "--format=%cs", cwd=ROOT / where) or ""
+            items.append(Item("external", fm.get("name", sdir.name), w,
+                              updated=commit_date, review_by=entry["review-by"],
+                              origin=f"https://github.com/{entry.get('repo', '')}",
+                              license=entry.get("license", ""),
+                              extra={"commit": (sm["pinned"] or "")[:7], "branch": sm["branch"],
+                                     "verified": entry.get("verified", ""),
+                                     "submodule": where}))
     return items
 
 
@@ -338,9 +427,12 @@ def collect(today: dt.date) -> tuple[list[Item], Report]:
     items += load_own("standalone", "standalone", rep, today)
     vendor = load_vendor(rep, today)
     items += vendor
-    items += load_community(rep, {d.name for d in (ROOT / "vendor").glob("*/") if d.is_dir()})
+    community, entries = load_community(
+        rep, {d.name for d in (ROOT / "vendor").glob("*/") if d.is_dir()})
+    items += community
+    items += load_external(rep, entries)
     items += load_agents(rep)
-    names = [i.name for i in items if i.kind in ("own", "standalone", "vendor")]
+    names = [i.name for i in items if i.kind in ("own", "standalone", "vendor", "external")]
     for dup in sorted({n for n in names if names.count(n) > 1}):
         rep.err("kit", f"nombre de skill duplicado entre carpetas: {dup}")
     for it in items:
@@ -367,7 +459,7 @@ def render_catalog(items: list[Item], today: dt.date) -> str:
         "",
         f"> Generado por `python3 scripts/toolkit.py catalog` el **{today.isoformat()}**. "
         "No editar a mano: la fuente de verdad es el frontmatter de cada skill, "
-        "`vendor/*/SOURCE.md`, `catalog/community.yaml` y el historial git (agentes).",
+        "`vendor/*/SOURCE.md`, `catalog/community.yaml`, `.gitmodules` y el historial git.",
         ">",
         "> **Estado**: ✅ vigente · ⚠️ vence en ≤30 días · ⛔ vencido (revisar/actualizar) · "
         "🚧 incompleto · 🗄️ obsoleto. Ventanas de revisión: conceptual 12 meses, "
@@ -398,15 +490,31 @@ def render_catalog(items: list[Item], today: dt.date) -> str:
         out.append(f"| [`{i.name}`]({i.path}/SKILL.md) | [{repo}]({i.origin}) | `{i.extra['commit']}` "
                    f"| {i.updated} | {i.added} | {i.license} | {i.review_by} "
                    f"| {freshness(i.review_by, today)} |")
+    out += ["", "## Skills de terceros por submódulo (`external/`)", "",
+            "Siguen la rama upstream: `git submodule update --remote` (o el PR mensual de "
+            "Dependabot) los trae al día. Clona con `--recurse-submodules`.", "",
+            "| Skill | Upstream | Rama | Commit fijado | Fecha del commit | Licencia "
+            "| Revisar antes de | Estado |",
+            "|---|---|---|---|---|---|---|---|"]
+    for i in rows("external"):
+        repo = i.origin.replace("https://github.com/", "")
+        out.append(f"| [`{i.name}`]({i.path}/SKILL.md) | [{repo}]({i.origin}) | {i.extra['branch']} "
+                   f"| `{i.extra['commit']}` | {i.updated} | {i.license} | {i.review_by} "
+                   f"| {freshness(i.review_by, today)} |")
     out += ["", "## Paquetes de la comunidad (`catalog/community.yaml`)", "",
             "| Paquete | Versión / commit | Fecha upstream | Verificado | Licencia "
-            "| Recomendados | Copiado a vendor/ | Revisar antes de | Estado |",
+            "| Recomendados | Integración | Revisar antes de | Estado |",
             "|---|---|---|---|---|---|---|---|---|"]
     for i in rows("community"):
         ver = i.extra["version"] if i.extra["version"] not in ("", "n/a") else ""
         vc = f"{ver} · `{i.extra['commit']}`" if ver else f"`{i.extra['commit']}`"
         rec = ", ".join(i.extra["recommended"]) or "—"
-        ven = ", ".join(i.extra["vendored"]) or "—"
+        if i.extra["submodule"]:
+            ven = f"submódulo `{i.extra['submodule']}`"
+        elif i.extra["vendored"]:
+            ven = "vendor/: " + ", ".join(i.extra["vendored"])
+        else:
+            ven = "solo enlace"
         out.append(f"| [{i.path}](https://github.com/{i.path}) | {vc} | {i.updated} "
                    f"| {i.extra['verified']} | {i.license} | {rec} | {ven} | {i.review_by} "
                    f"| {freshness(i.review_by, today)} |")
@@ -424,6 +532,35 @@ def render_catalog(items: list[Item], today: dt.date) -> str:
     return "\n".join(out)
 
 
+# --------------------------------------------------------------------------- external
+def cmd_external(fail_if_behind: bool) -> int:
+    mods = submodules()
+    if not mods:
+        print("No hay submódulos en .gitmodules.")
+        return 0
+    behind_any = False
+    for sm in mods:
+        ref = f"refs/heads/{sm['branch']}" if sm["branch"] else "HEAD"
+        remote = git("ls-remote", sm["url"], ref)
+        head = remote.split()[0] if remote else None
+        pinned = sm["pinned"] or "?"
+        if head is None:
+            print(f"{sm['path']}: no se pudo consultar {sm['url']} ({ref})")
+            continue
+        if head == pinned:
+            print(f"{sm['path']}: al día ({pinned[:7]}, {sm['branch'] or 'HEAD'})")
+            continue
+        behind_any = True
+        count = ""
+        if sm["initialized"]:
+            git("fetch", "-q", "origin", sm["branch"] or "HEAD", cwd=ROOT / sm["path"])
+            n = git("rev-list", "--count", f"{pinned}..{head}", cwd=ROOT / sm["path"])
+            count = f", {n} commits detrás" if n else ""
+        print(f"{sm['path']}: ATRASADO — fijado {pinned[:7]}, upstream {head[:7]}{count}. "
+              f"Actualizar: git submodule update --remote {sm['path']}")
+    return 1 if (fail_if_behind and behind_any) else 0
+
+
 # --------------------------------------------------------------------------- CLI
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
@@ -432,10 +569,16 @@ def main(argv=None) -> int:
     v.add_argument("--fail-on-stale", action="store_true",
                    help="exit 1 si hay elementos con review-by vencido")
     c = sub.add_parser("catalog", help="genera CATALOG.md")
+    e = sub.add_parser("external", help="compara submódulos con su upstream (usa red)")
+    e.add_argument("--fail-if-behind", action="store_true",
+                   help="exit 1 si algún submódulo va atrasado respecto a upstream")
     for p in (v, c):
         p.add_argument("--today", type=parse_date, default=dt.date.today(),
                        help="fecha de referencia (por defecto hoy)")
     args = ap.parse_args(argv)
+
+    if args.cmd == "external":
+        return cmd_external(args.fail_if_behind)
 
     items, rep = collect(args.today)
     if args.cmd == "catalog":
@@ -453,7 +596,7 @@ def main(argv=None) -> int:
             for line in lines:
                 print(f"  - {line}")
     counts = {k: sum(1 for i in items if i.kind == k)
-              for k in ("own", "standalone", "vendor", "community", "agent")}
+              for k in ("own", "standalone", "vendor", "external", "community", "agent")}
     print(f"\nRevisados: {counts}. Errores: {len(rep.errors)}, avisos: {len(rep.warnings)}, "
           f"vencidos: {len(rep.stale)}.")
     if rep.errors or (args.fail_on_stale and rep.stale):

@@ -2,6 +2,18 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Fechas en `YYYY-MM-DD`.
 
+## 2026-11-07 — Cloudflare security-audit como submódulo
+
+### Agregado
+- `external/cloudflare-security-audit`: submódulo git de [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) (MIT), rama `main`, fijado en `c1c8a8c` (2026-09-14). Aporta el skill `security-audit`.
+- `.github/dependabot.yml`: PR mensual cuando un submódulo de `external/` tiene cambios upstream.
+- `scripts/toolkit.py external`: dice si cada submódulo está al día o cuántos commits va atrasado. `validate` ahora revisa los submódulos (spec, entrada en el catálogo, commit fijado vs. catálogo).
+
+### Cambiado
+- `install.sh`: enlaza los skills de `external/`, descarga los submódulos que falten (`--no-external` para omitirlos).
+- CI clona con submódulos; el reporte mensual incluye los submódulos atrasados.
+- README: instalación con `git clone --recurse-submodules` y cómo actualizar.
+
 ## 2026-11-07 — Reestructuración, fechas y comunidad
 
 ### Agregado
