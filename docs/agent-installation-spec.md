@@ -12,7 +12,7 @@ Esta especificación define el protocolo determinista para que un **agente de IA
 ## 1. Principios del Instalador
 
 1. **Información para el Agente:** Este documento es el contrato de conocimiento. El agente que instala el submódulo es quien inspecciona el entorno del usuario, selecciona el destino correspondiente y ejecuta las operaciones.
-2. **Alcance Exclusivo de Skills:** Solo se instalan los directorios contenidos en `skills/*/` (propios) y `vendor/*/` (terceros, fijados a un commit; el consumidor puede omitirlos). No se intentan convertir ni enlazar adaptadores de subagentes específicos de una herramienta (`adapters/`) en clientes que no los soporten.
+2. **Alcance Exclusivo de Skills:** Solo se instalan los directorios contenidos en `skills/*/` (propios), `vendor/*/` (terceros, fijados a un commit) y `external/*/skills/*/` (terceros como submódulos git; requieren `git submodule update --init`). El consumidor puede omitir vendor/ y external/. No se intentan convertir ni enlazar adaptadores de subagentes específicos de una herramienta (`adapters/`) en clientes que no los soporten.
 3. **Casos Especiales:** Los skills de `standalone/` (p. ej. `standalone/ai-first-security-auditor/`) son paquetes de auditoría dedicada que se instalan aparte y **NO** deben ser enlazados dentro del loop estándar.
 4. **Política de Colisión ("Saltear con Warning"):** Si en la ruta destino ya existe un skill con el mismo nombre (sea carpeta real o symlink externo), **NUNCA** se sobreescribe. Se emite una advertencia formal y se continúa con el siguiente.
 5. **Symlinks como Enlace Preferido:** Siempre que el sistema operativo y el sistema de archivos lo permitan, se crean enlaces simbólicos absolutos para que `git pull` en el submódulo mantenga los skills actualizados sin reinstalación.
@@ -63,8 +63,10 @@ Paso 2: Resolución del Directorio Destino
   2.2 Crear el directorio de destino si no existe (`mkdir -p "$TARGET_SKILLS_DIR"`).
 
 Paso 3: Enlace de Skills con Política de Advertencia
-  3.1 Para cada carpeta `SKILL_PATH` en `$SUBMODULE_DIR/skills/*/` y `$SUBMODULE_DIR/vendor/*/`
-      (omitir vendor/ si el usuario lo pide):
+  3.0 Si existe .gitmodules, ejecutar `git -C "$SUBMODULE_DIR" submodule update --init`
+      para descargar external/ (si falla por falta de red, continuar sin external/).
+  3.1 Para cada carpeta `SKILL_PATH` en `$SUBMODULE_DIR/skills/*/`, `$SUBMODULE_DIR/vendor/*/`
+      y `$SUBMODULE_DIR/external/*/skills/*/` (omitir vendor/ o external/ si el usuario lo pide):
       a) SKILL_NAME = basename(SKILL_PATH)
       b) DEST_PATH = "$TARGET_SKILLS_DIR/$SKILL_NAME"
       c) Si DEST_PATH ya existe:
@@ -97,7 +99,10 @@ TARGET_DIR="$HOME/.gemini/antigravity-cli/skills"
 
 mkdir -p "$TARGET_DIR"
 
-for skill in "$SUBMODULE_DIR"/skills/*/ "$SUBMODULE_DIR"/vendor/*/; do
+git -C "$SUBMODULE_DIR" submodule update --init || echo "  ⚠️ [WARN] sin external/ (no se pudieron descargar submódulos)"
+
+for skill in "$SUBMODULE_DIR"/skills/*/ "$SUBMODULE_DIR"/vendor/*/ "$SUBMODULE_DIR"/external/*/skills/*/; do
+  [ -f "$skill/SKILL.md" ] || continue
   skill="${skill%/}"
   name="$(basename "$skill")"
   target="$TARGET_DIR/$name"

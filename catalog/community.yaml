@@ -14,6 +14,7 @@
 #   verified         fecha en que se revisó la entrada
 #   review-by        fecha límite para re-verificar (verified + 3 meses)
 #   vendored         skills copiados a vendor/ (lista vacía = solo enlace)
+#   submodule        (opcional) ruta del submódulo git en external/ que sigue al upstream
 #   recommended      skills/plugins recomendados de ese paquete y por qué
 #   install          cómo instalar (por herramienta)
 #   notes            advertencias (licencia, dependencias, solapamientos)
@@ -101,6 +102,33 @@ entries:
     notes: >-
       Licencia share-alike (CC-BY-SA-4.0): no se vendoriza para no arrastrar esa
       licencia a adaptaciones dentro de este repo. Solo enlace.
+
+  - id: cloudflare-security-audit
+    repo: cloudflare/security-audit-skill
+    kind: skill
+    license: MIT
+    submodule: external/cloudflare-security-audit
+    upstream-commit: "c1c8a8c"
+    upstream-commit-date: "2026-09-14"
+    upstream-version: "n/a"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: []
+    recommended:
+      - name: security-audit
+        why: >-
+          Auditoría de seguridad multi-fase (reconocimiento, hunting, validación por un
+          agente distinto al que encontró el hallazgo, reporte findings.json). Por defecto
+          solo orienta; el flujo completo se activa al pedir una auditoría explícita.
+    install:
+      claude-code: "Viene con este repo: git clone --recurse-submodules + ./install.sh"
+      any-agent: "npx skills add https://github.com/cloudflare/security-audit-skill --skill security-audit"
+    notes: >-
+      Integrado como submódulo git (sigue la rama main de Cloudflare); Dependabot abre
+      un PR mensual cuando hay cambios. El flujo completo requiere Node.js y un sandbox
+      sin red con límites de recursos; sin él, los hallazgos que necesitan ejecutar
+      código quedan como needs_validation. Más amplio que standalone/ai-first-security-auditor
+      (que se centra en TS/Supabase/Docker y remedia código).
 
   - id: design-doc-mermaid
     repo: SpillwaveSolutions/design-doc-mermaid

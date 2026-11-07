@@ -5,8 +5,12 @@
 # Uso:
 #   ./install.sh                 # nivel usuario (~/.claude/)
 #   ./install.sh --project       # proyecto actual (./.claude/)
-#   ./install.sh --no-vendor     # solo skills propios (omite vendor/)
+#   ./install.sh --no-vendor     # omite vendor/ (copias de terceros)
+#   ./install.sh --no-external   # omite external/ (submódulos de terceros, p. ej. Cloudflare)
 #   ./install.sh --dry-run       # muestra qué haría, sin tocar nada
+#
+# Si clonaste sin --recurse-submodules, el script descarga los submódulos de
+# external/ automáticamente (git submodule update --init).
 #
 # Política de colisión (igual que docs/agent-installation-spec.md):
 #   - Si el destino ya es un symlink a este repo → se deja (OK).
@@ -17,14 +21,16 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE="$HOME/.claude"
 WITH_VENDOR=1
+WITH_EXTERNAL=1
 DRY_RUN=0
 
 for arg in "$@"; do
   case "$arg" in
     --project)   BASE="$(pwd)/.claude" ;;
     --no-vendor) WITH_VENDOR=0 ;;
+    --no-external) WITH_EXTERNAL=0 ;;
     --dry-run)   DRY_RUN=1 ;;
-    -h|--help)   sed -n '2,15p' "$0"; exit 0 ;;
+    -h|--help)   sed -n '2,19p' "$0"; exit 0 ;;
     *) echo "Opción desconocida: $arg" >&2; exit 2 ;;
   esac
 done
@@ -62,6 +68,33 @@ for dir in "${dirs[@]}"; do
     link "$skill" "$BASE/skills/$(basename "$skill")" "skill $(basename "$skill")"
   done
 done
+
+# external/: skills de terceros como submódulos git (siguen al upstream).
+if (( WITH_EXTERNAL )) && [[ -f "$REPO_DIR/.gitmodules" ]]; then
+  echo ""; echo "external/"
+  while read -r _ sub_path; do
+    [[ "$sub_path" == external/* ]] || continue
+    if [[ ! -e "$REPO_DIR/$sub_path/.git" ]]; then
+      if (( DRY_RUN )); then
+        echo "  [DRY]  descargaría el submódulo $sub_path"; continue
+      fi
+      echo "  [INIT] descargando submódulo $sub_path ..."
+      if ! git -C "$REPO_DIR" submodule update --init -- "$sub_path"; then
+        echo "  [WARN] no se pudo descargar $sub_path (¿sin red?). Se omite."
+        skipped=$((skipped + 1)); continue
+      fi
+    fi
+    found=0
+    for skill in "$REPO_DIR/$sub_path"/skills/*/ "$REPO_DIR/$sub_path"/; do
+      [[ -f "$skill/SKILL.md" ]] || continue
+      skill="${skill%/}"
+      name="$(sed -n 's/^name:[[:space:]]*//p' "$skill/SKILL.md" | head -1)"
+      link "$skill" "$BASE/skills/${name:-$(basename "$skill")}" "skill ${name:-$(basename "$skill")} ($sub_path)"
+      found=1
+    done
+    (( found )) || echo "  [WARN] $sub_path no contiene SKILL.md"
+  done < <(git -C "$REPO_DIR" config -f .gitmodules --get-regexp '^submodule\..*\.path$')
+fi
 
 echo ""; echo "adapters/claude-code/agents/"
 for agent in "$REPO_DIR"/adapters/claude-code/agents/*.md; do
