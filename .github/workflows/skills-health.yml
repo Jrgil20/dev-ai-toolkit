@@ -1,0 +1,71 @@
+name: skills-health
+
+# Valida el kit en cada push/PR y, una vez al mes, abre (o actualiza) un issue
+# con los skills/paquetes cuyo `review-by` ya venció.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 13 1 * *"   # día 1 de cada mes, 13:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # el validador usa el historial git para fechas
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Validar estructura y fechas
+        run: python3 scripts/toolkit.py validate
+      - name: Verificar sintaxis de install.sh
+        run: bash -n install.sh
+
+  stale-report:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Buscar vencidos
+        id: stale
+        run: |
+          set +e
+          python3 scripts/toolkit.py validate --fail-on-stale > report.txt
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat report.txt
+      - name: Abrir o actualizar issue
+        if: steps.stale.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create stale-skills --color D93F0B --description "Skills con review-by vencido" --force
+          {
+            echo "El chequeo mensual encontró elementos con \`review-by\` vencido."
+            echo "Revisa cada uno (actualiza contenido o fechas, re-sincroniza vendor/, o márcalo deprecated) y luego corre \`python3 scripts/toolkit.py catalog\`."
+            echo
+            echo '```'
+            cat report.txt
+            echo '```'
+          } > body.md
+          num=$(gh issue list --label stale-skills --state open --json number --jq '.[0].number')
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body-file body.md
+          else
+            gh issue create --title "Skills por revisar (review-by vencido)" --label stale-skills --body-file body.md
+          fi
