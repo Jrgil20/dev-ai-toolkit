@@ -1,5 +1,7 @@
 # Especificación de Instalación Nativa Multi-Agente (Gentle-AI Matrix)
 
+> **Última revisión:** 2026-11-07 · **Revisar antes de:** 2027-05-07. Las rutas de cada agente cambian con frecuencia; verifica contra [Gentle-AI](https://github.com/Gentleman-Programming/gentle-ai) si algo falla.
+
 Esta especificación define el protocolo determinista para que un **agente de IA consumidor** (que incorpora `dev-ai-toolkit` como submódulo o dependencia) instale los skills de este repositorio de forma nativa en el entorno de desarrollo del usuario.
 
 > [!NOTE]
@@ -10,8 +12,8 @@ Esta especificación define el protocolo determinista para que un **agente de IA
 ## 1. Principios del Instalador
 
 1. **Información para el Agente:** Este documento es el contrato de conocimiento. El agente que instala el submódulo es quien inspecciona el entorno del usuario, selecciona el destino correspondiente y ejecuta las operaciones.
-2. **Alcance Exclusivo de Skills:** Solo se instalan los directorios contenidos en `skills/*/`. No se intentan convertir ni enlazar adaptadores de subagentes específicos de una herramienta (`adapters/`) en clientes que no los soporten.
-3. **Casos Especiales:** Carpetas en la raíz con estructura de skill como `ai-first-security-auditor/` son casos especiales de auditoría dedicada y **NO** deben ser enlazadas dentro del loop estándar de `skills/`.
+2. **Alcance Exclusivo de Skills:** Solo se instalan los directorios contenidos en `skills/*/` (propios) y `vendor/*/` (terceros, fijados a un commit; el consumidor puede omitirlos). No se intentan convertir ni enlazar adaptadores de subagentes específicos de una herramienta (`adapters/`) en clientes que no los soporten.
+3. **Casos Especiales:** Los skills de `standalone/` (p. ej. `standalone/ai-first-security-auditor/`) son paquetes de auditoría dedicada que se instalan aparte y **NO** deben ser enlazados dentro del loop estándar.
 4. **Política de Colisión ("Saltear con Warning"):** Si en la ruta destino ya existe un skill con el mismo nombre (sea carpeta real o symlink externo), **NUNCA** se sobreescribe. Se emite una advertencia formal y se continúa con el siguiente.
 5. **Symlinks como Enlace Preferido:** Siempre que el sistema operativo y el sistema de archivos lo permitan, se crean enlaces simbólicos absolutos para que `git pull` en el submódulo mantenga los skills actualizados sin reinstalación.
 
@@ -61,7 +63,8 @@ Paso 2: Resolución del Directorio Destino
   2.2 Crear el directorio de destino si no existe (`mkdir -p "$TARGET_SKILLS_DIR"`).
 
 Paso 3: Enlace de Skills con Política de Advertencia
-  3.1 Para cada carpeta `SKILL_PATH` en `$SUBMODULE_DIR/skills/*/`:
+  3.1 Para cada carpeta `SKILL_PATH` en `$SUBMODULE_DIR/skills/*/` y `$SUBMODULE_DIR/vendor/*/`
+      (omitir vendor/ si el usuario lo pide):
       a) SKILL_NAME = basename(SKILL_PATH)
       b) DEST_PATH = "$TARGET_SKILLS_DIR/$SKILL_NAME"
       c) Si DEST_PATH ya existe:
@@ -75,7 +78,9 @@ Paso 3: Enlace de Skills con Política de Advertencia
          - Registrar: "✅ Skill enlazado: $SKILL_NAME -> $DEST_PATH"
 
 Paso 4: Exclusiones Estrictas
-  4.1 NO procesar ai-first-security-auditor/.
+  4.1 NO procesar standalone/ (incluye ai-first-security-auditor).
+  4.2b Antes de instalar, el consumidor puede consultar CATALOG.md y omitir los
+       elementos marcados ⛔ vencido o 🗄️ obsoleto, avisando al usuario.
   4.2 NO intentar copiar ni procesar adapters/claude-code/agents/ salvo que el agente activo sea específicamente Claude Code.
 ```
 
@@ -92,7 +97,7 @@ TARGET_DIR="$HOME/.gemini/antigravity-cli/skills"
 
 mkdir -p "$TARGET_DIR"
 
-for skill in "$SUBMODULE_DIR"/skills/*/; do
+for skill in "$SUBMODULE_DIR"/skills/*/ "$SUBMODULE_DIR"/vendor/*/; do
   skill="${skill%/}"
   name="$(basename "$skill")"
   target="$TARGET_DIR/$name"

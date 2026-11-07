@@ -1,6 +1,14 @@
 ---
 name: clean-architecture
 description: Convenciones de Clean Architecture en 4 capas (Domain, Application, Interface Adapters, Infrastructure), regla de dependencias y nomenclatura de puertos/adaptadores. Usar siempre que se diseñe, escriba o revise código en un proyecto por capas, se pregunte "¿en qué capa va esto?", "¿esto viola la arquitectura?", o se cree un módulo nuevo en un proyecto con estructura domain/application/infrastructure.
+metadata:
+  added: "2026-07-01"
+  updated: "2026-07-01"
+  review-by: "2027-07-01"
+  volatility: "conceptual"
+  status: "active"
+  lang: "es"
+  origin: "own"
 ---
 
 # Clean Architecture

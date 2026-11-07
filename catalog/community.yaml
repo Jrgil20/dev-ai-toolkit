@@ -1,0 +1,160 @@
+# Catálogo de skills de la comunidad (no propios).
+#
+# Cada entrada registra CUÁNDO se verificó y A QUÉ COMMIT apunta, para poder
+# detectar obsolescencia. `scripts/toolkit.py validate` avisa cuando
+# `review-by` ya pasó; `scripts/toolkit.py catalog` genera CATALOG.md.
+#
+# Campos:
+#   id               identificador estable de la entrada
+#   repo             owner/name en GitHub
+#   kind             plugin-marketplace | skill | collection
+#   license          SPDX (o texto si upstream no declara archivo)
+#   upstream-commit  commit verificado (corto) · upstream-commit-date: fecha de ese commit
+#   upstream-version versión publicada si existe
+#   verified         fecha en que se revisó la entrada
+#   review-by        fecha límite para re-verificar (verified + 3 meses)
+#   vendored         skills copiados a vendor/ (lista vacía = solo enlace)
+#   recommended      skills/plugins recomendados de ese paquete y por qué
+#   install          cómo instalar (por herramienta)
+#   notes            advertencias (licencia, dependencias, solapamientos)
+
+entries:
+  - id: obra-superpowers
+    repo: obra/superpowers
+    kind: plugin-marketplace
+    license: MIT
+    upstream-commit: "22f0b46"
+    upstream-commit-date: "2026-11-03"
+    upstream-version: "7.0.2"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: [systematic-debugging, verification-before-completion, test-driven-development]
+    recommended:
+      - name: systematic-debugging
+        why: Debugging por causa raíz en fases; evita parches a ciegas.
+      - name: verification-before-completion
+        why: Obliga a evidencia (tests/comandos) antes de declarar algo terminado.
+      - name: test-driven-development
+        why: Ciclo rojo-verde-refactor estricto; complementa skills/test-strategy (qué testear) con el cómo.
+      - name: brainstorming + writing-plans + executing-plans
+        why: Flujo diseño→plan→ejecución. Dependen entre sí y de hooks del plugin; usar el plugin completo, no copias.
+    install:
+      claude-code: "/plugin install superpowers@claude-plugins-official"
+      claude-code-alt: "/plugin marketplace add obra/superpowers-marketplace && /plugin install superpowers@superpowers-marketplace"
+      antigravity: "agy plugin install https://github.com/obra/superpowers"
+    notes: >-
+      El plugin completo inyecta un hook SessionStart que hace que sus skills se
+      auto-disparen; puede solaparse con code-review/test-strategy de este repo.
+      Si instalas el plugin, las copias de vendor/ quedan redundantes (en Claude Code
+      no colisionan porque las del plugin llevan prefijo superpowers:).
+
+  - id: anthropic-skills
+    repo: anthropics/skills
+    kind: plugin-marketplace
+    license: Apache-2.0 (revisar LICENSE.txt de cada skill)
+    upstream-commit: "2c5958e"
+    upstream-commit-date: "2026-11-06"
+    upstream-version: "n/a"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: [webapp-testing]
+    recommended:
+      - name: skill-creator
+        why: Crear/mejorar skills de este repo y correr evals de disparo. Grande (~270 KB); usar vía plugin.
+      - name: mcp-builder
+        why: Guía para construir servidores MCP (TS/Python) con evaluaciones.
+      - name: webapp-testing
+        why: Probar apps web locales con Playwright (útil para tus proyectos React/SvelteKit).
+      - name: frontend-design
+        why: Interfaces con criterio visual; evita estética genérica.
+    install:
+      claude-code: "/plugin marketplace add anthropics/skills && /plugin install example-skills@anthropic-agent-skills"
+      claude-ai: "skill-creator y frontend-design ya vienen integrados en claude.ai; el resto se sube como skill."
+    notes: >-
+      webapp-testing se vendoriza por ser pequeño y útil en agentes sin
+      marketplace (Cursor, Antigravity, OpenCode...); el resto, vía plugin.
+
+  - id: trailofbits-skills
+    repo: trailofbits/skills
+    kind: plugin-marketplace
+    license: CC-BY-SA-4.0
+    upstream-commit: "e4dd0bb"
+    upstream-commit-date: "2026-11-06"
+    upstream-version: "n/a"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: []
+    recommended:
+      - name: insecure-defaults
+        why: Credenciales hardcodeadas, secretos de fallback, defaults débiles. Complementa standalone/ai-first-security-auditor.
+      - name: supply-chain-risk-auditor
+        why: Riesgo de dependencias npm/PyPI/Go con advisories por versión.
+      - name: differential-review
+        why: Review de seguridad de un diff con análisis de historial y radio de impacto.
+      - name: static-analysis
+        why: CodeQL + Semgrep + SARIF.
+      - name: sharp-edges
+        why: APIs y configuraciones propensas a error (footguns).
+    install:
+      claude-code: "/plugin marketplace add trailofbits/skills  # luego /plugin menu"
+      codex: "codex plugin marketplace add trailofbits/skills"
+    notes: >-
+      Licencia share-alike (CC-BY-SA-4.0): no se vendoriza para no arrastrar esa
+      licencia a adaptaciones dentro de este repo. Solo enlace.
+
+  - id: design-doc-mermaid
+    repo: SpillwaveSolutions/design-doc-mermaid
+    kind: skill
+    license: MIT (declarada en README, sin archivo LICENSE)
+    upstream-commit: "c36d835"
+    upstream-commit-date: "2026-08-24"
+    upstream-version: "n/a"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: [design-doc-mermaid]
+    recommended:
+      - name: design-doc-mermaid
+        why: Diagramas Mermaid (actividad, secuencia, despliegue, arquitectura) y design docs desde código.
+    install:
+      any-agent: "Usar la copia de vendor/design-doc-mermaid (incluye guías y scripts)."
+    notes: >-
+      Reemplaza la copia de claude.ai, que solo tenía el SKILL.md sin references/,
+      assets/ ni scripts/. Los scripts requieren Python y mermaid-cli (mmdc). El
+      flujo de recuperación de errores menciona MCPs opcionales (perplexity, brave).
+
+  # --- Solo referencia (no seleccionados aún) -------------------------------
+  - id: supabase-agent-skills
+    repo: supabase/agent-skills
+    kind: collection
+    license: MIT
+    upstream-commit: "c9be0e9"
+    upstream-commit-date: "2026-10-02"
+    upstream-version: "n/a"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: []
+    recommended:
+      - name: supabase-postgres-best-practices
+        why: Relevante para tus proyectos Supabase (multi-tenant SaaS, RLS).
+    install:
+      any-agent: "npx skills add supabase/agent-skills"
+    notes: No seleccionado en esta ronda; listado como candidato.
+
+  - id: vercel-agent-skills
+    repo: vercel-labs/agent-skills
+    kind: collection
+    license: MIT
+    upstream-commit: "1a2c79d"
+    upstream-commit-date: "2026-10-27"
+    upstream-version: "n/a"
+    verified: "2026-11-07"
+    review-by: "2027-02-07"
+    vendored: []
+    recommended:
+      - name: react-best-practices
+        why: Patrones de rendimiento para React/Next.js.
+      - name: web-design-guidelines
+        why: Auditoría de UI/accesibilidad.
+    install:
+      any-agent: "npx skills add vercel-labs/agent-skills"
+    notes: No seleccionado en esta ronda; listado como candidato.

@@ -1,6 +1,14 @@
 ---
 name: commit-and-pr
 description: Genera mensajes de commit en formato Conventional Commits y descripciones de PR con plantilla fija. Usar siempre que el usuario pida redactar un commit, "escribe el mensaje de commit", "prepara el PR", "describe estos cambios", o al finalizar cualquier tarea de código cuyo resultado vaya a commitearse.
+metadata:
+  added: "2026-07-01"
+  updated: "2026-07-01"
+  review-by: "2027-07-01"
+  volatility: "conceptual"
+  status: "active"
+  lang: "es"
+  origin: "own"
 ---
 
 # Commits y PRs

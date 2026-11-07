@@ -1,6 +1,14 @@
 ---
 name: tech-docs
 description: Escribe documentación técnica con plantillas fijas para README y ADRs (Architecture Decision Records). Usar siempre que el usuario pida "documenta esto", "crea el README", "registra esta decisión", "necesito un ADR", "escribe la documentación de X", o al cerrar una decisión arquitectónica que deba quedar registrada.
+metadata:
+  added: "2026-07-01"
+  updated: "2026-07-01"
+  review-by: "2027-07-01"
+  volatility: "conceptual"
+  status: "active"
+  lang: "es"
+  origin: "own"
 ---
 
 # Documentación Técnica
