@@ -30,6 +30,7 @@ dev-ai-toolkit/
 │   ├── code-review/ · test-strategy/ · commit-and-pr/ · tech-docs/
 │   ├── clean-architecture/ · ddd-patterns/          (+ references/ bajo demanda)
 │   ├── ai-usage-report/                              (+ references/examples-and-checklist.md)
+│   ├── adb-device-testing/           # probar y medir una app web en un Android por USB (scripts/ + references/ + assets/)
 │   ├── inference-security-hardening/ · secure-ssh-tunnels/
 │   ├── project-inception/           # 🚧 falta references/templates.md
 │   ├── deployment-cost-expert/      # precios en references/pricing-snapshot.md (fecha por fila)
@@ -169,6 +170,7 @@ Sube la carpeta del skill en Configuración → Capacidades. Los subagentes no a
 | "este test falla y no sé por qué" | `systematic-debugging` → `test-driven-development` → `verification-before-completion` |
 | "prueba la app local en el navegador" | `webapp-testing` |
 | "haz el diagrama de secuencia de este flujo" | `design-doc-mermaid` |
+| "prueba en el teléfono", "mide los fps en el celular" | `adb-device-testing` |
 | "audita la seguridad del servidor de inferencia/VLM" | `inference-security-hardening` |
 | "configura un túnel SSH para la GPU/cámara" | `secure-ssh-tunnels` |
 | "audita la seguridad de este MVP hecho con IA" | `standalone/ai-first-security-auditor` |
