@@ -17,6 +17,9 @@ if (typeof WebSocket === "undefined") {
   process.exit(2);
 }
 
+// `cdp.mjs ... | head -1` cierra la tubería: terminar en silencio en vez de soltar un EPIPE.
+process.stdout.on("error", (e) => { if (e.code === "EPIPE") process.exit(0); throw e; });
+
 const argv = process.argv.slice(2);
 const opt = (name, fallback) => {
   const i = argv.indexOf(`--${name}`);
