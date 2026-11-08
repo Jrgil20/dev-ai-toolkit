@@ -38,3 +38,5 @@ Desde la raíz de cualquier repositorio TypeScript / Node.js / Expo / Supabase:
 ```bash
 ./.agents/skills/ai-first-security-auditor/scripts/recon_audit.sh .
 ```
+
+Código de salida: `0` si el escaneo terminó (los hallazgos se imprimen igual, no cambian el código) y `2` si el destino no es un directorio legible o algún chequeo no pudo terminar. Un chequeo incompleto se marca con `[!]` y nunca se informa como limpio.

@@ -28,7 +28,7 @@ Se instalan aparte (submódulo o copia manual); `install.sh` no los enlaza.
 
 | Skill | Idioma | Volatilidad | Agregado | Actualizado | Revisar antes de | Estado |
 |---|---|---|---|---|---|---|
-| [`ai-first-security-auditor`](standalone/ai-first-security-auditor/SKILL.md) | en | tooling | 2026-10-13 | 2026-10-14 | 2027-04-14 | ✅ vigente |
+| [`ai-first-security-auditor`](standalone/ai-first-security-auditor/SKILL.md) | en | tooling | 2026-10-13 | 2026-11-08 | 2027-04-14 | ✅ vigente |
 
 ## Skills de terceros copiados (`vendor/`)
 

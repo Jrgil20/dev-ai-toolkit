@@ -2,6 +2,18 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Fechas en `YYYY-MM-DD`.
 
+## 2026-11-08 — Reconocimiento de ai-first-security-auditor sin falsos "limpio"
+
+### Corregido
+- `standalone/ai-first-security-auditor/scripts/recon_audit.sh`:
+  - Con un destino inexistente informaba los 6 chequeos como limpios y salía con 0. Ahora sale con 2 y lo explica en stderr.
+  - Si `grep` fallaba (por ejemplo, un archivo sin permiso de lectura), el chequeo se mostraba como limpio. Ahora se marca con `[!]`, muestra el error y el escaneo sale con 2.
+  - El patrón de SQL armado con template literals (``query(`... ${x}`)``) nunca coincidía, porque `$` llegaba a `grep` como ancla de fin de línea. Ahora detecta esos casos.
+
+### Agregado
+- `tests/recon_audit_test.sh`: pruebas sin dependencias de los casos anteriores y del comportamiento que ya existía (`bash tests/recon_audit_test.sh`).
+- `.github/workflows/skills-health.yml`: el job `validate` corre esas pruebas en cada push y PR.
+
 ## 2026-11-08 — Skill adb-device-testing
 
 ### Agregado
