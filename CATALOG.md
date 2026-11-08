@@ -1,6 +1,6 @@
 # Catálogo de dev-ai-toolkit
 
-> Generado por `python3 scripts/toolkit.py catalog` el **2026-11-07**. No editar a mano: la fuente de verdad es el frontmatter de cada skill, `vendor/*/SOURCE.md`, `catalog/community.yaml`, `.gitmodules` y el historial git.
+> Generado por `python3 scripts/toolkit.py catalog` el **2026-11-08**. No editar a mano: la fuente de verdad es el frontmatter de cada skill, `vendor/*/SOURCE.md`, `catalog/community.yaml`, `.gitmodules` y el historial git.
 >
 > **Estado**: ✅ vigente · ⚠️ vence en ≤30 días · ⛔ vencido (revisar/actualizar) · 🚧 incompleto · 🗄️ obsoleto. Ventanas de revisión: conceptual 12 meses, tooling 6, pricing 3, vendor/comunidad 3.
 
@@ -8,6 +8,7 @@
 
 | Skill | Idioma | Volatilidad | Agregado | Actualizado | Revisar antes de | Estado |
 |---|---|---|---|---|---|---|
+| [`adb-device-testing`](skills/adb-device-testing/SKILL.md) | es | tooling | 2026-11-08 | 2026-11-08 | 2027-05-08 | ✅ vigente |
 | [`ai-usage-report`](skills/ai-usage-report/SKILL.md) | es | tooling | 2026-07-01 | 2026-11-07 | 2027-05-07 | ✅ vigente |
 | [`clean-architecture`](skills/clean-architecture/SKILL.md) | es | conceptual | 2026-07-01 | 2026-07-01 | 2027-07-01 | ✅ vigente |
 | [`code-review`](skills/code-review/SKILL.md) | es | conceptual | 2026-07-01 | 2026-07-01 | 2027-07-01 | ✅ vigente |

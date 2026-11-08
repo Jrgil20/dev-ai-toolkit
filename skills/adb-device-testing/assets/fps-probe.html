@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fps probe</title>
+<style>
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; background: #0f172a; color: #e2e8f0; }
+  canvas { display: block; width: 100vw; height: 60vh; }
+  pre { margin: 8px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<pre id="out">warming up…</pre>
+<script>
+/*
+ * Smoke test and template for the in-page probe (see references/perf-probe.md).
+ * Query: ?settle=3 (seconds to wait) &measure=5 (seconds to sample) &report=http://localhost:9000/perf &load=200 (rectangles per frame)
+ * It animates a canvas, samples requestAnimationFrame deltas, and POSTs {fps,p50,p95,max,frames,...} to `report`.
+ */
+const q = new URLSearchParams(location.search);
+const settle = Number(q.get("settle") ?? 3) * 1000;
+const measure = Number(q.get("measure") ?? 5) * 1000;
+const report = q.get("report") ?? "http://localhost:9000/perf";
+const load = Number(q.get("load") ?? 200);
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+canvas.width = canvas.clientWidth * devicePixelRatio;
+canvas.height = canvas.clientHeight * devicePixelRatio;
+
+let t0 = performance.now();
+const deltas = [];
+let restarts = 0;
+let last = t0;
+let done = false;
+
+function draw(now) {
+  ctx.fillStyle = "#0f172a";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < load; i++) {
+    ctx.fillStyle = `hsl(${(i * 7 + now / 20) % 360} 70% 55%)`;
+    const x = ((i * 53 + now / 5) % canvas.width);
+    const y = ((i * 97) % canvas.height);
+    ctx.fillRect(x, y, 24 * devicePixelRatio, 24 * devicePixelRatio);
+  }
+}
+
+function percentile(sorted, p) { return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]; }
+
+function finish() {
+  done = true;
+  deltas.sort((a, b) => a - b);
+  const gl = document.createElement("canvas").getContext("webgl");
+  const ext = gl && gl.getExtension("WEBGL_debug_renderer_info");
+  const result = {
+    frames: deltas.length,
+    fps: +(deltas.length / (measure / 1000)).toFixed(1),
+    p50: +percentile(deltas, 0.5).toFixed(1),
+    p95: +percentile(deltas, 0.95).toFixed(1),
+    max: +deltas[deltas.length - 1].toFixed(1),
+    renderer: ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : "n/a",
+    dpr: devicePixelRatio, w: innerWidth, h: innerHeight, load,
+    visible: document.visibilityState, restarts,
+  };
+  document.getElementById("out").textContent = JSON.stringify(result, null, 1);
+  fetch(report, { method: "POST", mode: "no-cors", body: JSON.stringify(result) }).catch(() => {});
+}
+
+function frame(now) {
+  // A paused tab (screen off, app in background) resumes with one huge delta: restart the settle window instead of reporting it.
+  if (now - last > 1000) { t0 = now; deltas.length = 0; restarts++; last = now; }
+  draw(now);
+  if (now - t0 >= settle) deltas.push(now - last);
+  last = now;
+  if (!done && now - t0 >= settle + measure) return finish();
+  if (!done) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

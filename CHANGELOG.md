@@ -2,6 +2,15 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Fechas en `YYYY-MM-DD`.
 
+## 2026-11-08 — Skill adb-device-testing
+
+### Agregado
+- `skills/adb-device-testing`: probar y medir una app web local en un Android conectado por USB. Sale de una sesión real de pruebas en un nubia Z2464N (Android 15, Chrome 137) y se validó contra ese teléfono.
+  - `scripts/adb-phone.sh`: `find|devices|info|cdp|wake|up|open|await|shot|stop|down`. Reinicia el servidor adb si no aparece el dispositivo, exige pantalla encendida y sin bloqueo (nunca intenta saltar un PIN) y restaura al final `stay_on_while_plugged_in` y los túneles.
+  - `scripts/cdp.mjs`: cliente mínimo de DevTools (Node 22 o superior): `targets|go|eval|shot|console|close`. Captura `console.*` y excepciones de la página del teléfono, que `logcat` no muestra.
+  - `scripts/perf_listener.py` y `assets/fps-probe.html`: camino que no depende de CDP; la página mide con `requestAnimationFrame` y reporta por `adb reverse`.
+  - `references/perf-probe.md` y `references/troubleshooting.md`: criterios para descartar corridas inválidas y tabla de fallas reales (pestaña pausada con la pantalla apagada, `/json/new` con 500, `ERR_UNSAFE_PORT`, HTTPS autofirmado rechazado, falso negativo de `grep -q` con `pipefail`).
+
 ## 2026-11-07 — Packs por stack: Supabase, Netlify, Vercel/React
 
 ### Agregado
