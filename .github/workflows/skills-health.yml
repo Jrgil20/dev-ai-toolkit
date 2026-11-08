@@ -30,6 +30,8 @@ jobs:
         run: python3 scripts/toolkit.py validate
       - name: Verificar sintaxis de install.sh
         run: bash -n install.sh
+      - name: Probar recon_audit.sh
+        run: bash tests/recon_audit_test.sh
 
   stale-report:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
