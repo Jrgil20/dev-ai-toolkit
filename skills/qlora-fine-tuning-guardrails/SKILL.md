@@ -6,6 +6,14 @@ description: >-
   fine-tuning pipelines, prevent synthetic dataset mode collapse, enforce multi-turn
   conversational entropy, size multi-tenant inference contexts in llama-server,
   and validate PEFT adapter convergence on edge/remote compute.
+metadata:
+  added: "2026-11-12"
+  updated: "2026-11-12"
+  review-by: "2027-05-12"
+  volatility: "tooling"
+  status: "active"
+  lang: "en"
+  origin: "own"
 ---
 
 # QLoRA & PEFT Fine-Tuning Guardrails Runbook
@@ -47,7 +55,7 @@ Every fine-tuning workflow must pass 5 consecutive, non-negotiable gates before 
 2. **Automated Assertion Gate (`assets/audit_dataset.py`)**:
    Run the audit script on the generated dataset before touching training hardware:
    ```bash
-   python3 .agents/skills/qlora-fine-tuning-guardrails/assets/audit_dataset.py --dataset path/to/dataset.json --max-prefix-pct 10.0
+   python3 assets/audit_dataset.py --dataset path/to/dataset.json --max-prefix-pct 10.0
    ```
    If the script exits with non-zero status, **do not train**. The dataset must be programmatically rebalanced first.
 
@@ -92,8 +100,8 @@ When deploying `llama-server` for interactive chat or evaluation:
 1. **Explicit Slot Sizing**:
    Always pass `-np 1` (or specify slot budget matching your user concurrency):
    ```bash
-   /path/to/llama-server \
-       -m /path/to/model_q8.gguf \
+   llama-server \
+       -m path/to/model_q8.gguf \
        --host 0.0.0.0 \
        --port 8090 \
        -ngl 99 \
@@ -115,7 +123,7 @@ When deploying `llama-server` for interactive chat or evaluation:
 ### Hardening Protocol:
 Before presenting any serving endpoint (GGUF or PyTorch) to the user, execute the automated multi-turn verification harness:
 ```bash
-python3 .agents/skills/qlora-fine-tuning-guardrails/assets/e2e_healthcheck.py --url http://127.0.0.1:8090/v1/chat/completions --model maestro-yiyo
+python3 assets/e2e_healthcheck.py --url http://127.0.0.1:8090/v1/chat/completions --model maestro-yiyo
 ```
 
 The script evaluates:

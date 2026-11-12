@@ -1,6 +1,6 @@
 # Catálogo de dev-ai-toolkit
 
-> Generado por `python3 scripts/toolkit.py catalog` el **2026-11-08**. No editar a mano: la fuente de verdad es el frontmatter de cada skill, `vendor/*/SOURCE.md`, `catalog/community.yaml`, `.gitmodules` y el historial git.
+> Generado por `python3 scripts/toolkit.py catalog` el **2026-11-12**. No editar a mano: la fuente de verdad es el frontmatter de cada skill, `vendor/*/SOURCE.md`, `catalog/community.yaml`, `.gitmodules` y el historial git.
 >
 > **Estado**: ✅ vigente · ⚠️ vence en ≤30 días · ⛔ vencido (revisar/actualizar) · 🚧 incompleto · 🗄️ obsoleto. Ventanas de revisión: conceptual 12 meses, tooling 6, pricing 3, vendor/comunidad 3.
 
@@ -18,6 +18,7 @@
 | [`executive-summary-cloud`](skills/executive-summary-cloud/SKILL.md) | es | conceptual | 2026-11-07 | 2026-11-07 | 2027-11-07 | ✅ vigente |
 | [`inference-security-hardening`](skills/inference-security-hardening/SKILL.md) | en | tooling | 2026-10-22 | 2026-10-22 | 2027-04-22 | ✅ vigente |
 | [`project-inception`](skills/project-inception/SKILL.md) | es | conceptual | 2026-11-07 | 2026-11-07 | 2027-11-07 | 🚧 incompleto |
+| [`qlora-fine-tuning-guardrails`](skills/qlora-fine-tuning-guardrails/SKILL.md) | en | tooling | 2026-11-12 | 2026-11-12 | 2027-05-12 | ✅ vigente |
 | [`secure-ssh-tunnels`](skills/secure-ssh-tunnels/SKILL.md) | en | tooling | 2026-10-22 | 2026-10-22 | 2027-04-22 | ✅ vigente |
 | [`tech-docs`](skills/tech-docs/SKILL.md) | es | conceptual | 2026-07-01 | 2026-07-01 | 2027-07-01 | ✅ vigente |
 | [`test-strategy`](skills/test-strategy/SKILL.md) | es | conceptual | 2026-07-01 | 2026-07-01 | 2027-07-01 | ✅ vigente |
@@ -50,15 +51,6 @@ Siguen la rama upstream: `git submodule update --remote` (o el PR mensual de Dep
 
 | Skill | Stack | Upstream | Rama | Commit fijado | Fecha del commit | Licencia | Revisar antes de | Estado |
 |---|---|---|---|---|---|---|---|---|
-| [`security-audit`](external/cloudflare-security-audit/skills/security-audit/SKILL.md) | general | [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | main | `c1c8a8c` | 2026-09-14 | MIT | 2027-02-07 | ✅ vigente |
-| [`netlify-config`](external/netlify-context-and-tools/skills/netlify-config/SKILL.md) | netlify | [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | main | `c7ef213` | 2026-11-05 | MIT | 2027-02-07 | ✅ vigente |
-| [`netlify-deploy`](external/netlify-context-and-tools/skills/netlify-deploy/SKILL.md) | netlify | [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | main | `c7ef213` | 2026-11-05 | MIT | 2027-02-07 | ✅ vigente |
-| [`netlify-functions`](external/netlify-context-and-tools/skills/netlify-functions/SKILL.md) | netlify | [netlify/context-and-tools](https://github.com/netlify/context-and-tools) | main | `c7ef213` | 2026-11-05 | MIT | 2027-02-07 | ✅ vigente |
-| [`vercel-react-best-practices`](external/vercel-agent-skills/skills/react-best-practices/SKILL.md) | react | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | main | `1a2c79d` | 2026-10-27 | MIT (declarada en README, sin archivo LICENSE) | 2027-02-07 | ✅ vigente |
-| [`web-design-guidelines`](external/vercel-agent-skills/skills/web-design-guidelines/SKILL.md) | react | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | main | `1a2c79d` | 2026-10-27 | MIT (declarada en README, sin archivo LICENSE) | 2027-02-07 | ✅ vigente |
-| [`supabase`](external/supabase-agent-skills/skills/supabase/SKILL.md) | supabase | [supabase/agent-skills](https://github.com/supabase/agent-skills) | main | `c9be0e9` | 2026-10-02 | MIT | 2027-02-07 | ✅ vigente |
-| [`supabase-postgres-best-practices`](external/supabase-agent-skills/skills/supabase-postgres-best-practices/SKILL.md) | supabase | [supabase/agent-skills](https://github.com/supabase/agent-skills) | main | `c9be0e9` | 2026-10-02 | MIT | 2027-02-07 | ✅ vigente |
-| [`deploy-to-vercel`](external/vercel-agent-skills/skills/deploy-to-vercel/SKILL.md) | vercel | [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | main | `1a2c79d` | 2026-10-27 | MIT (declarada en README, sin archivo LICENSE) | 2027-02-07 | ✅ vigente |
 
 ## Paquetes de la comunidad (`catalog/community.yaml`)
 
