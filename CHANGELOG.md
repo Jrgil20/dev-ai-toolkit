@@ -8,6 +8,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). F
 - `AGENTS.md`: reglas del repo y verificación previa a dar algo por terminado, en una única fuente para cualquier agente. Antigravity CLI (`agy`) lo carga directamente; se verificó que lee el archivo.
 - `CLAUDE.md`: solo importa `@AGENTS.md`, para que Claude Code use las mismas reglas sin duplicarlas.
 
+## 2026-11-17 — Skill agy (delegación a Antigravity CLI)
+
+### Agregado
+- `skills/agy`: delegar tareas acotadas a Antigravity CLI (`agy` 1.5.9) y revisar el resultado con `git diff`. Antes era una skill local en `~/.claude/skills/agy`; ahora vive en el repo y `install.sh` la enlaza.
+  - `scripts/agy-run.sh`: wrapper obligatorio. Corta con código 64 si falta `GEMINI_API_KEY` o si `settings.json` no tiene `"modelProvider": "gemini"`, porque orquestar `agy` con el login personal de Google puede violar los términos de Antigravity. Si el usuario exporta `AGY_ALLOW_OAUTH=1`, acepta ese riesgo: el wrapper corre con la suscripción personal y muestra una advertencia en stderr.
+  - Envuelve cada llamada en `timeout` (`AGY_HARD_TIMEOUT`, 900 s por defecto). Agrega `--print-timeout` 30 s más corto si no se pasa uno, porque `agy -p` espera indefinidamente por defecto y puede colgarse sin TTY (antigravity-cli#318).
+  - Sale con 65 cuando `agy` en modo headless rechaza solo un permiso de herramienta. En ese caso `agy` 1.5.9 escribe `jetski: no output produced` en stderr y sale con 0. La skill documenta la sintaxis de las reglas: `mcp(<server>/<tool>)` o `mcp(<server>/*)`; `mcp(<server>)` sin herramienta no coincide.
+  - Documenta que el ID del modelo ya incluye el esfuerzo: `gemini-3.8-flash-medium` con `--effort low` sale con 1.
+  - Contrato de prompt: se pasan rutas en vez de código pegado y `agy` responde con un resumen de 10 líneas como máximo. Cada tarea en paralelo usa su propia worktree. `--dangerously-skip-permissions` solo se permite en worktrees desechables, junto con `--sandbox`.
+- `tests/agy_run_test.sh`: pruebas del wrapper con un `agy` simulado, sin red (`bash tests/agy_run_test.sh`; `AGY_TEST_FAST=1` omite el caso de cuelgue de unos 61 s).
+
+### Cambiado
+- `CATALOG.md` regenerado.
+
 ## 2026-11-08 — Reconocimiento de ai-first-security-auditor sin falsos "limpio"
 
 ### Corregido
