@@ -2,6 +2,12 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Fechas en `YYYY-MM-DD`.
 
+## 2026-11-17 — Instrucciones compartidas para agentes
+
+### Agregado
+- `AGENTS.md`: reglas del repo y verificación previa a dar algo por terminado, en una única fuente para cualquier agente. Antigravity CLI (`agy`) lo carga directamente; se verificó que lee el archivo.
+- `CLAUDE.md`: solo importa `@AGENTS.md`, para que Claude Code use las mismas reglas sin duplicarlas.
+
 ## 2026-11-17 — Skill agy (delegación a Antigravity CLI)
 
 ### Agregado
