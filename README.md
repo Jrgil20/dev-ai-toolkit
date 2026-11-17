@@ -32,6 +32,7 @@ dev-ai-toolkit/
 │   ├── ai-usage-report/                              (+ references/examples-and-checklist.md)
 │   ├── adb-device-testing/           # probar y medir una app web en un Android por USB (scripts/ + references/ + assets/)
 │   ├── inference-security-hardening/ · secure-ssh-tunnels/
+│   ├── agy/                          # delegar a Antigravity CLI en modo API key (scripts/agy-run.sh)
 │   ├── project-inception/           # 🚧 falta references/templates.md
 │   ├── deployment-cost-expert/      # precios en references/pricing-snapshot.md (fecha por fila)
 │   └── executive-summary-cloud/
@@ -173,6 +174,7 @@ Sube la carpeta del skill en Configuración → Capacidades. Los subagentes no a
 | "prueba en el teléfono", "mide los fps en el celular" | `adb-device-testing` |
 | "audita la seguridad del servidor de inferencia/VLM" | `inference-security-hardening` |
 | "configura un túnel SSH para la GPU/cámara" | `secure-ssh-tunnels` |
+| "delega esto a Antigravity", "pídele a agy que…" | `agy` (exige modo API key de Gemini) |
 | "audita la seguridad de este MVP hecho con IA" | `standalone/ai-first-security-auditor` |
 | "haz una auditoría de seguridad completa de este repo" / "¿este endpoint es explotable?" | `security-audit` (Cloudflare, `external/`) |
 | "la política RLS no deja leer a este tenant" (proyecto con Supabase) | `supabase` (pack `supabase`) |
